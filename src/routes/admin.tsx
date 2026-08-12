@@ -10,6 +10,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { ErrorState, TableSkeleton } from "@/components/DataStates";
 import { StatusBadge, CategoryBadge } from "@/components/Badges";
 import { UserAvatar } from "@/components/UserAvatar";
+import { InvitesPanel } from "@/components/InvitesPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -161,6 +162,7 @@ function AdminPage() {
             <TabsTrigger value="stats">Stats</TabsTrigger>
             <TabsTrigger value="export">Export</TabsTrigger>
             <TabsTrigger value="accounts">Comptes</TabsTrigger>
+            <TabsTrigger value="invites">Invitations</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-4 space-y-3">
@@ -272,6 +274,10 @@ function AdminPage() {
                 Télécharger le fichier
               </Button>
             </div>
+          </TabsContent>
+
+          <TabsContent value="invites" className="mt-4">
+            <InvitesPanel />
           </TabsContent>
 
           <TabsContent value="accounts" className="mt-4 space-y-3">
