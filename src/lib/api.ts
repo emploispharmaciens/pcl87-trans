@@ -299,3 +299,29 @@ export async function setRole(
   const { error } = await supabase.from("user_roles").insert({ user_id: userId, role });
   if (error) throw error;
 }
+
+export type InviteRow = {
+  id: string;
+  code: string;
+  label: string | null;
+  grant_role: "membre" | "moderateur" | "admin";
+  expires_at: string | null;
+  max_uses: number | null;
+  uses: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+export async function fetchInvites(): Promise<InviteRow[]> {
+  const { data, error } = await supabase
+    .from("invites")
+    .select("id, code, label, grant_role, expires_at, max_uses, uses, is_active, created_at")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as InviteRow[];
+}
+
+export async function setInviteActive(id: string, active: boolean): Promise<void> {
+  const { error } = await supabase.from("invites").update({ is_active: active }).eq("id", id);
+  if (error) throw error;
+}

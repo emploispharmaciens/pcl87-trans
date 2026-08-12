@@ -29,7 +29,7 @@ export const Route = createFileRoute("/invite")({
     ],
   }),
   validateSearch: (search: Record<string, unknown>) => ({
-    code: typeof search.code === "string" ? search.code : "",
+    code: typeof search['code'] === "string" ? (search['code'] as string) : "",
   }),
   component: InvitePage,
 });
