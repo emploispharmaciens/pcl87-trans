@@ -52,14 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const meta = (current.user.user_metadata ?? {}) as Record<string, string | undefined>;
       const fullName = meta["full_name"] ?? meta["name"] ?? "";
       const [firstName, ...rest] = fullName.split(" ");
-      const args: { _first_name?: string; _last_name?: string; _photo_url?: string } = {};
-      if (firstName) args._first_name = firstName;
-      if (rest.join(" ")) args._last_name = rest.join(" ");
+      const args: { firstName?: string; lastName?: string; photoUrl?: string } = {};
+      if (firstName) args.firstName = firstName;
+      if (rest.join(" ")) args.lastName = rest.join(" ");
       const photo = meta["avatar_url"] ?? meta["picture"];
-      if (photo) args._photo_url = photo;
-      const { data, error: rpcError } = await supabase.rpc("ensure_profile", args);
-      if (rpcError) throw rpcError;
-      const row = Array.isArray(data) ? data[0] : data;
+      if (photo) args.photoUrl = photo;
+      const row = await ensureProfile({ data: args });
       setProfile((row as Profile) ?? null);
 
       const { data: roleRows } = await supabase
