@@ -349,39 +349,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      can_edit_transmission: { Args: { _id: string }; Returns: boolean }
-      ensure_profile: {
-        Args: { _first_name?: string; _last_name?: string; _photo_url?: string }
-        Returns: {
-          approval: Database["public"]["Enums"]["approval_status"]
-          created_at: string
-          display_name: string | null
-          email: string | null
-          first_name: string | null
-          id: string
-          initials: string | null
-          job_title: string | null
-          last_name: string | null
-          photo_url: string | null
-          refusal_reason: string | null
-          updated_at: string
-        }
-        SetofOptions: {
-          from: "*"
-          to: "profiles"
-          isOneToOne: true
-          isSetofReturn: false
-        }
-      }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
-      is_approved: { Args: { _user_id: string }; Returns: boolean }
-      is_moderator: { Args: { _user_id: string }; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       app_role: "membre" | "moderateur" | "admin"
