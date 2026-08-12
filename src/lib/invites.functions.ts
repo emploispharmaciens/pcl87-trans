@@ -6,6 +6,7 @@ import {
   hashInvitePassword,
   invitePasswordMatches,
 } from "@/lib/invites.server";
+import { isAdmin } from "@/lib/authz.server";
 
 const createSchema = z.object({
   label: z.string().trim().max(120).optional(),
@@ -20,12 +21,8 @@ export const createInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => createSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { data: isAdmin, error: roleError } = await context.supabase.rpc("has_role", {
-      _user_id: context.userId,
-      _role: "admin",
-    });
-    if (roleError) throw new Error(roleError.message);
-    if (!isAdmin) throw new Error("Action réservée aux administrateurs");
+    if (!(await isAdmin(context.supabase, context.userId)))
+      throw new Error("Action réservée aux administrateurs");
 
     const code = generateInviteCode();
     const { error } = await context.supabase.from("invites").insert({
