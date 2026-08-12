@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { canEditTransmission, isApproved } from "@/lib/authz.server";
 
 const BUCKET = "transmissions";
 const SIGNED_URL_TTL = 900; // 15 minutes
@@ -20,11 +21,11 @@ export const uploadTransmissionImage = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => uploadSchema.parse(data))
   .handler(async ({ data, context }) => {
-    const { data: allowed, error: rightsError } = await context.supabase.rpc(
-      "can_edit_transmission",
-      { _id: data.transmissionId },
+    const allowed = await canEditTransmission(
+      context.supabase,
+      context.userId,
+      data.transmissionId,
     );
-    if (rightsError) throw new Error(rightsError.message);
     if (!allowed) throw new Error("Action non autorisée");
 
     const bytes = Buffer.from(data.base64, "base64");
@@ -61,9 +62,7 @@ export const signImageUrls = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.paths.length === 0) return {} as Record<string, string>;
 
-    const { data: approved } = await context.supabase.rpc("is_approved", {
-      _user_id: context.userId,
-    });
+    const approved = await isApproved(context.supabase, context.userId);
     if (!approved) throw new Error("Accès non autorisé");
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
