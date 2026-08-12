@@ -161,44 +161,56 @@ export type Database = {
       profiles: {
         Row: {
           approval: Database["public"]["Enums"]["approval_status"]
+          avatar_path: string | null
           created_at: string
           display_name: string | null
           email: string | null
           first_name: string | null
+          google_photo_url: string | null
           id: string
           initials: string | null
           job_title: string | null
+          last_login_at: string | null
           last_name: string | null
           photo_url: string | null
           refusal_reason: string | null
+          service: string | null
           updated_at: string
         }
         Insert: {
           approval?: Database["public"]["Enums"]["approval_status"]
+          avatar_path?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           first_name?: string | null
+          google_photo_url?: string | null
           id: string
           initials?: string | null
           job_title?: string | null
+          last_login_at?: string | null
           last_name?: string | null
           photo_url?: string | null
           refusal_reason?: string | null
+          service?: string | null
           updated_at?: string
         }
         Update: {
           approval?: Database["public"]["Enums"]["approval_status"]
+          avatar_path?: string | null
           created_at?: string
           display_name?: string | null
           email?: string | null
           first_name?: string | null
+          google_photo_url?: string | null
           id?: string
           initials?: string | null
           job_title?: string | null
+          last_login_at?: string | null
           last_name?: string | null
           photo_url?: string | null
           refusal_reason?: string | null
+          service?: string | null
           updated_at?: string
         }
         Relationships: []
