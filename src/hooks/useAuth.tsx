@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureProfile } from "@/lib/profile.functions";
 
 export type AppRole = "membre" | "moderateur" | "admin";
 export type Approval = "en_attente" | "approuve" | "refuse" | "desactive";
