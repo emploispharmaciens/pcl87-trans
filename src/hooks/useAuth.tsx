@@ -15,6 +15,11 @@ export type Profile = {
   initials: string | null;
   job_title: string | null;
   photo_url: string | null;
+  service: string | null;
+  google_photo_url: string | null;
+  avatar_path: string | null;
+  last_login_at: string | null;
+  created_at: string;
   approval: Approval;
   refusal_reason: string | null;
 };
@@ -29,6 +34,7 @@ type AuthState = {
   isModerator: boolean;
   isAdmin: boolean;
   reload: () => Promise<void>;
+  setProfile: (profile: Profile) => void;
   signOut: () => Promise<void>;
 };
 
@@ -104,6 +110,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isApproved: profile?.approval === "approuve",
     isModerator: roles.includes("moderateur") || roles.includes("admin"),
     isAdmin: roles.includes("admin"),
+    setProfile: (next: Profile) => setProfile(next),
     reload: async () => {
       setLoading(true);
       const { data } = await supabase.auth.getSession();

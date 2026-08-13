@@ -35,6 +35,7 @@ export type Transmission = TransmissionRow & {
     initials: string | null;
     photo_url: string | null;
     job_title: string | null;
+    service: string | null;
   } | null;
   images: ContentImage[];
   tags: Tag[];
@@ -43,7 +44,7 @@ export type Transmission = TransmissionRow & {
 const SELECT = `
   id, title, content_html, content_text, type, status, is_priority, author_id, category_id, created_at, updated_at,
   category:categories(id, label, color, position),
-  author:profiles!transmissions_author_id_fkey(id, display_name, initials, photo_url, job_title)
+  author:profiles!transmissions_author_id_fkey(id, display_name, initials, photo_url, job_title, service)
 `;
 
 export type ListFilters = {
@@ -256,6 +257,8 @@ export type AccountRow = {
   initials: string | null;
   photo_url: string | null;
   job_title: string | null;
+  service: string | null;
+  last_login_at: string | null;
   approval: "en_attente" | "approuve" | "refuse" | "desactive";
   refusal_reason: string | null;
   created_at: string;
@@ -266,7 +269,7 @@ export async function fetchAccounts(): Promise<(AccountRow & { roles: string[] }
     supabase
       .from("profiles")
       .select(
-        "id, email, display_name, initials, photo_url, job_title, approval, refusal_reason, created_at",
+        "id, email, display_name, initials, photo_url, job_title, service, last_login_at, approval, refusal_reason, created_at",
       )
       .order("created_at", { ascending: false }),
     supabase.from("user_roles").select("user_id, role"),
