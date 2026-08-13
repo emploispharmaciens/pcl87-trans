@@ -157,7 +157,7 @@ function AdminPage() {
 
       <main className="mx-auto max-w-4xl px-4 py-4">
         <Tabs defaultValue="all">
-          <TabsList className="flex w-full flex-wrap">
+          <TabsList className="grid h-auto w-full grid-cols-3 gap-1 sm:flex sm:h-9">
             <TabsTrigger value="all">Transmissions</TabsTrigger>
             <TabsTrigger value="stats">Stats</TabsTrigger>
             <TabsTrigger value="export">Export</TabsTrigger>
@@ -166,16 +166,16 @@ function AdminPage() {
           </TabsList>
 
           <TabsContent value="all" className="mt-4 space-y-3">
-            <div className="module-panel flex flex-wrap gap-2 p-2">
+            <div className="module-panel grid grid-cols-2 gap-2 p-2 sm:flex sm:flex-wrap">
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Rechercher"
                 maxLength={100}
-                className="min-w-40 flex-1"
+                className="col-span-2 min-w-0 sm:min-w-40 sm:flex-1"
               />
               <Select value={status} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-36" aria-label="Statut">
+                <SelectTrigger className="w-full sm:w-36" aria-label="Statut">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -186,7 +186,7 @@ function AdminPage() {
                 </SelectContent>
               </Select>
               <Select value={categoryId} onValueChange={setCategoryId}>
-                <SelectTrigger className="w-40" aria-label="Catégorie">
+                <SelectTrigger className="w-full sm:w-40" aria-label="Catégorie">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -212,7 +212,7 @@ function AdminPage() {
               <div className="module-panel divide-y overflow-hidden">
                 {rows.map((row) => (
                   <div key={row.id} className="flex flex-wrap items-center gap-2 p-3">
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 basis-full sm:flex-1">
                       <p className="truncate text-sm font-semibold">{row.title}</p>
                       <p className="text-[0.7rem] text-muted-foreground">
                         {row.author?.display_name ?? "—"} · {fullDate(row.created_at)}
@@ -288,14 +288,14 @@ function AdminPage() {
             ) : (
               <div className="module-panel divide-y overflow-hidden">
                 {(accounts.data ?? []).map((account) => (
-                  <div key={account.id} className="flex flex-wrap items-center gap-2 p-3">
+                  <div key={account.id} className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-2 p-3 sm:flex sm:flex-wrap sm:items-center">
                     <UserAvatar
                       name={account.display_name}
                       initials={account.initials}
                       photoUrl={account.photo_url}
                       size={36}
                     />
-                    <div className="min-w-0 flex-1">
+                    <div className="min-w-0 sm:flex-1">
                       <p className="truncate text-sm font-semibold">
                         {account.display_name ?? "Sans nom"}
                       </p>
@@ -321,7 +321,7 @@ function AdminPage() {
                         })
                       }
                     >
-                      <SelectTrigger className="w-32" aria-label="Niveau d'accès">
+                      <SelectTrigger className="col-span-2 w-full sm:w-32" aria-label="Niveau d'accès">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -333,6 +333,7 @@ function AdminPage() {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="col-span-2 w-full sm:w-auto"
                       onClick={() => approval.mutate({ id: account.id, value: "approuve" })}
                     >
                       Approuver
@@ -340,6 +341,7 @@ function AdminPage() {
                     <Button
                       size="sm"
                       variant="ghost"
+                      className="col-span-2 w-full sm:w-auto"
                       onClick={() => approval.mutate({ id: account.id, value: "refuse" })}
                     >
                       Refuser
@@ -347,7 +349,7 @@ function AdminPage() {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="text-destructive"
+                      className="col-span-2 w-full text-destructive sm:w-auto"
                       onClick={() => approval.mutate({ id: account.id, value: "desactive" })}
                     >
                       Désactiver
