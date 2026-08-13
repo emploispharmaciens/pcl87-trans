@@ -43,7 +43,11 @@ export function TransmissionCard({
           <p className="truncate text-sm font-semibold">
             {item.author?.display_name ?? "Soignant"}
           </p>
-          <p className="text-[0.7rem] text-muted-foreground">{relativeTime(item.created_at)}</p>
+          <p className="truncate text-[0.7rem] text-muted-foreground">
+            {[item.author?.job_title, item.author?.service].filter(Boolean).join(" · ")}
+            {item.author?.job_title || item.author?.service ? " · " : ""}
+            {relativeTime(item.created_at)}
+          </p>
         </div>
       </header>
 

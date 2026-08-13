@@ -300,8 +300,16 @@ function AdminPage() {
                         {account.display_name ?? "Sans nom"}
                       </p>
                       <p className="truncate text-[0.7rem] text-muted-foreground">
+                        {[account.job_title, account.service].filter(Boolean).join(" · ") ||
+                          "Fonction non renseignée"}
+                      </p>
+                      <p className="truncate text-[0.7rem] text-muted-foreground">
                         {account.email} · {APPROVAL_LABELS[account.approval]} ·{" "}
                         {account.roles.map((r) => ROLE_LABELS[r] ?? r).join(", ") || "Aucun rôle"}
+                      </p>
+                      <p className="truncate text-[0.7rem] text-muted-foreground">
+                        Inscrit le {fullDate(account.created_at)} · Dernière connexion :{" "}
+                        {account.last_login_at ? fullDate(account.last_login_at) : "—"}
                       </p>
                     </div>
                     <Select

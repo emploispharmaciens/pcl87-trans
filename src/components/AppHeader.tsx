@@ -26,12 +26,19 @@ export function AppHeader() {
           <Button variant="ghost" size="sm" onClick={() => void signOut()} aria-label="Se déconnecter">
             <i className="bi bi-box-arrow-right" aria-hidden="true" />
           </Button>
-          <UserAvatar
-            name={profile?.display_name}
-            initials={profile?.initials}
-            photoUrl={profile?.photo_url}
-            size={32}
-          />
+          <Link
+            to="/profile"
+            aria-label="Mon profil"
+            title="Mon profil"
+            className="rounded-full ring-offset-2 transition hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <UserAvatar
+              name={profile?.display_name}
+              initials={profile?.initials}
+              photoUrl={profile?.photo_url}
+              size={32}
+            />
+          </Link>
         </nav>
       </div>
     </header>

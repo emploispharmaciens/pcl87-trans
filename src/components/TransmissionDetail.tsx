@@ -46,6 +46,11 @@ export function TransmissionDetail({
             />
             <div>
               <p className="text-sm font-semibold">{item.author?.display_name ?? "Soignant"}</p>
+              {item.author?.job_title || item.author?.service ? (
+                <p className="text-[0.7rem] text-muted-foreground">
+                  {[item.author?.job_title, item.author?.service].filter(Boolean).join(" · ")}
+                </p>
+              ) : null}
               <p className="text-[0.7rem] text-muted-foreground">{fullDate(item.created_at)}</p>
             </div>
           </div>
