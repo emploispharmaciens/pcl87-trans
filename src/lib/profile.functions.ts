@@ -35,13 +35,18 @@ export const ensureProfile = createServerFn({ method: "POST" })
       .maybeSingle();
 
     if (existing) {
-      const patch: Record<string, string | null> = { last_login_at: new Date().toISOString() };
+      const patch: {
+        last_login_at: string;
+        google_photo_url?: string;
+        approval?: "approuve";
+        refusal_reason?: null;
+      } = { last_login_at: new Date().toISOString() };
       if (data.photoUrl && existing.google_photo_url !== data.photoUrl) {
-        patch["google_photo_url"] = data.photoUrl;
+        patch.google_photo_url = data.photoUrl;
       }
       if (isOwner && existing.approval !== "approuve") {
-        patch["approval"] = "approuve";
-        patch["refusal_reason"] = null;
+        patch.approval = "approuve";
+        patch.refusal_reason = null;
       }
       const { data: updated } = await supabaseAdmin
         .from("profiles")
