@@ -1,201 +1,217 @@
-import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import { AuthGate } from "@/components/AuthGate";
-import { AppHeader } from "@/components/AppHeader";
-import { ModuleBanner } from "@/components/ModuleBanner";
-import { StatsCards, StatsSkeleton } from "@/components/StatsCards";
-import { FiltersBar } from "@/components/FiltersBar";
-import { TransmissionCard } from "@/components/TransmissionCard";
-import { TransmissionDetail } from "@/components/TransmissionDetail";
-import { TransmissionForm } from "@/components/TransmissionForm";
-import { ConfirmDialog } from "@/components/ConfirmDialog";
-import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
+import { Button } from "@/components/ui/button";
+import { MODULES } from "@/lib/modules";
 import { useAuth } from "@/hooks/useAuth";
-import {
-  fetchCategories,
-  fetchStats,
-  fetchTransmissions,
-  hardDelete,
-  setStatus,
-  type ListFilters,
-  type Transmission,
-} from "@/lib/api";
+import { lovable } from "@/integrations/lovable/index";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Transmissions du bloc — DB&M" },
+      { title: "Des Blocs & Moi — la plateforme des équipes de bloc" },
       {
         name: "description",
         content:
-          "Le journal de relève des équipes de bloc opératoire : pannes, consignes, alertes et rappels partagés entre équipes.",
+          "Des Blocs & Moi rassemble transmissions, protocoles, fiches d'intervention, arsenal et formation dans une seule plateforme pensée pour les équipes de bloc opératoire.",
       },
-      { property: "og:title", content: "Transmissions du bloc — DB&M" },
+      { property: "og:title", content: "Des Blocs & Moi — la plateforme des équipes de bloc" },
       {
         property: "og:description",
-        content: "Le journal de relève numérique des équipes de bloc opératoire.",
+        content:
+          "Une plateforme unique pour les équipes de bloc : transmissions, protocoles, arsenal, préférences chirurgien et formation.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: TransmissionsPage,
+  component: LandingPage,
 });
 
-function TransmissionsPage() {
+const PROMISES = [
+  {
+    icon: "bi-lightning-charge",
+    title: "Trouver en 10 secondes",
+    text: "L'information du bloc — matériel, protocole, préférence chirurgien — accessible depuis le téléphone, en salle.",
+  },
+  {
+    icon: "bi-arrow-left-right",
+    title: "Ne plus rien perdre entre deux équipes",
+    text: "Les transmissions écrites remplacent le post-it et le bouche-à-oreille.",
+  },
+  {
+    icon: "bi-mortarboard",
+    title: "Intégrer plus vite les nouveaux",
+    text: "Livret d'accueil, carnet de bord et modules de formation dans un seul parcours.",
+  },
+  {
+    icon: "bi-shield-check",
+    title: "Sécuriser la pratique",
+    text: "Never events, installations patient, fiches de picking : les repères sont partagés, pas mémorisés.",
+  },
+  {
+    icon: "bi-people",
+    title: "Faire équipe",
+    text: "Annuaire, profils DISC, boîte à idées : mieux se connaître pour mieux travailler ensemble.",
+  },
+  {
+    icon: "bi-lock",
+    title: "Réservé à l'équipe",
+    text: "Accès sur invitation, validé par un administrateur du bloc. Aucune donnée patient.",
+  },
+];
+
+function SignInButton({ label = "Se connecter avec Google" }: { label?: string }) {
+  const [busy, setBusy] = useState(false);
+
+  const signIn = async () => {
+    setBusy(true);
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      toast.error("La connexion a échoué. Réessayez.");
+      setBusy(false);
+      return;
+    }
+    if (result.redirected) return;
+    window.location.reload();
+  };
+
   return (
-    <AuthGate>
-      <Portal />
-    </AuthGate>
+    <Button size="lg" onClick={() => void signIn()} disabled={busy}>
+      <i className="bi bi-google mr-2" aria-hidden="true" />
+      {label}
+    </Button>
   );
 }
 
-function Portal() {
-  const { profile, isAdmin, isModerator } = useAuth();
-  const queryClient = useQueryClient();
-
-  const [filters, setFilters] = useState<ListFilters>({ status: "ouvert", type: "all" });
-  const [detail, setDetail] = useState<Transmission | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editing, setEditing] = useState<Transmission | null>(null);
-  const [confirm, setConfirm] = useState<{ kind: "archive" | "delete"; item: Transmission } | null>(
-    null,
-  );
-
-  const categoriesQuery = useQuery({ queryKey: ["categories"], queryFn: fetchCategories });
-  const statsQuery = useQuery({ queryKey: ["stats"], queryFn: fetchStats });
-  const listQuery = useQuery({
-    queryKey: ["transmissions", filters],
-    queryFn: () => fetchTransmissions(filters),
-  });
-
-  const items = listQuery.data ?? [];
-  const canEdit = useMemo(
-    () => (item: Transmission) => item.author_id === profile?.id || isModerator,
-    [profile?.id, isModerator],
-  );
-
-  const act = useMutation({
-    mutationFn: async ({ kind, item }: { kind: "archive" | "delete"; item: Transmission }) => {
-      if (kind === "archive") {
-        await setStatus(item.id, item.status === "archive" ? "ouvert" : "archive");
-        return;
-      }
-      if (isAdmin) await hardDelete(item.id);
-      else await setStatus(item.id, "supprime");
-    },
-    onSuccess: async (_data, variables) => {
-      toast.success(variables.kind === "archive" ? "Statut mis à jour." : "Transmission retirée.");
-      setConfirm(null);
-      setDetail(null);
-      await queryClient.invalidateQueries();
-    },
-    onError: (error: Error) => toast.error(error.message),
-  });
+function LandingPage() {
+  const { session, loading } = useAuth();
 
   return (
-    <div className="min-h-screen">
-      <AppHeader />
-      <ModuleBanner
-        title="Transmissions"
-        subtitle="Ce que l'équipe précédente doit vous dire."
-      />
-
-      <main className="mx-auto max-w-4xl px-4 py-4">
-        <section className="mb-4" aria-label="Statistiques">
-          {statsQuery.isPending ? (
-            <StatsSkeleton />
-          ) : statsQuery.isError ? (
-            <ErrorState onRetry={() => void statsQuery.refetch()} />
+    <div className="min-h-screen bg-background">
+      <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur">
+        <div className="mx-auto flex max-w-5xl items-center justify-between gap-2 px-4 py-2">
+          <span className="flex min-w-0 items-center gap-2 font-bold text-module-text">
+            <i className="bi bi-hospital shrink-0 text-lg" aria-hidden="true" />
+            <span className="truncate">Des Blocs &amp; Moi</span>
+          </span>
+          {loading ? null : session ? (
+            <Button asChild size="sm">
+              <Link to="/portail">
+                Entrer dans le portail
+                <i className="bi bi-arrow-right ml-2" aria-hidden="true" />
+              </Link>
+            </Button>
           ) : (
-            <StatsCards stats={statsQuery.data} />
+            <Button asChild variant="ghost" size="sm">
+              <a href="#acces">Accès équipe</a>
+            </Button>
           )}
+        </div>
+      </header>
+
+      <section className="module-banner px-4 py-14 sm:py-20">
+        <div className="mx-auto max-w-5xl">
+          <p className="text-sm uppercase tracking-widest opacity-75">Bloc opératoire</p>
+          <h1 className="mt-2 max-w-2xl text-3xl leading-tight sm:text-5xl">
+            Tout ce que l'équipe de bloc doit savoir, au même endroit.
+          </h1>
+          <p className="mt-4 max-w-2xl text-base opacity-85 sm:text-lg">
+            Des Blocs &amp; Moi réunit les transmissions, les protocoles, l'arsenal, les préférences
+            chirurgien et la formation dans une plateforme mobile-first, utilisable en salle.
+          </p>
+          <div className="mt-7 flex flex-wrap gap-3">
+            {session ? (
+              <Button asChild size="lg" variant="secondary">
+                <Link to="/portail">Accéder aux modules</Link>
+              </Button>
+            ) : (
+              <SignInButton />
+            )}
+            <Button asChild size="lg" variant="outline" className="bg-transparent">
+              <a href="#modules">Voir les modules</a>
+            </Button>
+          </div>
+        </div>
+      </section>
+
+      <main>
+        <section className="mx-auto max-w-5xl px-4 py-12" aria-label="Nos promesses">
+          <h2 className="text-xl font-semibold text-module-text sm:text-2xl">
+            Ce que la plateforme vous promet
+          </h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {PROMISES.map((p) => (
+              <article key={p.title} className="module-card p-5">
+                <i className={`bi ${p.icon} text-2xl text-module-strong`} aria-hidden="true" />
+                <h3 className="mt-3 font-semibold">{p.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{p.text}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
-        <FiltersBar
-          filters={filters}
-          categories={categoriesQuery.data ?? []}
-          canCreate={Boolean(profile)}
-          onChange={setFilters}
-          onCreate={() => {
-            setEditing(null);
-            setFormOpen(true);
-          }}
-        />
-
-        <section aria-label="Liste des transmissions">
-          {listQuery.isPending ? (
-            <CardSkeleton />
-          ) : listQuery.isError ? (
-            <ErrorState
-              message={(listQuery.error as Error).message}
-              onRetry={() => void listQuery.refetch()}
-            />
-          ) : items.length === 0 ? (
-            <EmptyState
-              icon="bi-chat-square-text"
-              title="Aucune transmission"
-              hint="Écrivez la première pour l'équipe suivante."
-            />
-          ) : (
-            <div className="space-y-3">
-              {items.map((item) => (
-                <TransmissionCard key={item.id} item={item} onOpen={setDetail} />
+        <section id="modules" className="bg-module-soft px-4 py-12">
+          <div className="mx-auto max-w-5xl">
+            <h2 className="text-xl font-semibold text-module-text sm:text-2xl">
+              {MODULES.length} modules pour couvrir la vie du bloc
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Les modules s'ouvrent progressivement. Transmissions et Mon profil sont déjà en
+              service.
+            </p>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {MODULES.map((m) => (
+                <div key={m.slug} className="module-card flex gap-3 p-4">
+                  <i
+                    className={`bi ${m.icon} mt-0.5 text-xl text-module-strong`}
+                    aria-hidden="true"
+                  />
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 font-semibold">
+                      {m.name}
+                      {m.status === "actif" ? (
+                        <span className="rounded-full bg-module-strong/10 px-2 py-0.5 text-xs font-medium text-module-strong">
+                          Disponible
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                          Bientôt
+                        </span>
+                      )}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">{m.description}</p>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
+          </div>
+        </section>
+
+        <section id="acces" className="mx-auto max-w-3xl px-4 py-14 text-center">
+          <h2 className="text-xl font-semibold text-module-text sm:text-2xl">Accès équipe</h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
+            La plateforme est réservée aux professionnels du bloc. Connectez-vous avec votre compte
+            Google : un administrateur valide votre accès, ou utilisez le lien d'invitation qui vous
+            a été transmis.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            {session ? (
+              <Button asChild size="lg">
+                <Link to="/portail">Entrer dans le portail</Link>
+              </Button>
+            ) : (
+              <SignInButton label="Se connecter / demander un accès" />
+            )}
+          </div>
         </section>
       </main>
 
-      <TransmissionDetail
-        item={detail}
-        open={detail !== null}
-        onOpenChange={(open) => !open && setDetail(null)}
-        canEdit={detail ? canEdit(detail) : false}
-        canDeleteHard={isAdmin}
-        onEdit={(item) => {
-          setEditing(item);
-          setDetail(null);
-          setFormOpen(true);
-        }}
-        onArchive={(item) => setConfirm({ kind: "archive", item })}
-        onDelete={(item) => setConfirm({ kind: "delete", item })}
-      />
-
-      {profile ? (
-        <TransmissionForm
-          open={formOpen}
-          onOpenChange={setFormOpen}
-          categories={categoriesQuery.data ?? []}
-          authorId={profile.id}
-          editing={editing}
-        />
-      ) : null}
-
-      <ConfirmDialog
-        open={confirm !== null}
-        onOpenChange={(open) => !open && setConfirm(null)}
-        title={
-          confirm?.kind === "archive"
-            ? confirm.item.status === "archive"
-              ? "Réactiver cette transmission ?"
-              : "Archiver cette transmission ?"
-            : isAdmin
-              ? "Supprimer définitivement ?"
-              : "Masquer cette transmission ?"
-        }
-        message={
-          confirm?.kind === "archive"
-            ? "Elle change simplement de liste. Vous pouvez revenir en arrière."
-            : isAdmin
-              ? "Cette action est définitive. La transmission sera effacée."
-              : "Elle ne sera plus visible. Un administrateur peut la restaurer."
-        }
-        confirmLabel={confirm?.kind === "archive" ? "Archiver" : "Supprimer"}
-        tone={confirm?.kind === "archive" ? "warning" : "danger"}
-        loading={act.isPending}
-        onConfirm={() => confirm && act.mutate(confirm)}
-      />
+      <footer className="border-t py-6 text-center text-sm text-muted-foreground">
+        © {new Date().getFullYear()} Des Blocs &amp; Moi — plateforme interne du bloc opératoire.
+      </footer>
     </div>
   );
 }
