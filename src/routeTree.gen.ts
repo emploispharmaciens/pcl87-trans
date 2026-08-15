@@ -15,6 +15,7 @@ import { Route as InviteRouteImport } from './routes/invite'
 import { Route as PortailRouteImport } from './routes/portail'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as TransmissionsRouteImport } from './routes/transmissions'
+import { Route as ModulesSlugRouteImport } from './routes/modules.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const TransmissionsRoute = TransmissionsRouteImport.update({
   path: '/transmissions',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModulesSlugRoute = ModulesSlugRouteImport.update({
+  id: '/modules/$slug',
+  path: '/modules/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
   '/transmissions': typeof TransmissionsRoute
+  '/modules/$slug': typeof ModulesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
   '/transmissions': typeof TransmissionsRoute
+  '/modules/$slug': typeof ModulesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,13 +79,27 @@ export interface FileRoutesById {
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
   '/transmissions': typeof TransmissionsRoute
+  '/modules/$slug': typeof ModulesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/admin' | '/invite' | '/portail' | '/profile' | '/transmissions'
+    | '/'
+    | '/admin'
+    | '/invite'
+    | '/portail'
+    | '/profile'
+    | '/transmissions'
+    | '/modules/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/invite' | '/portail' | '/profile' | '/transmissions'
+  to:
+    | '/'
+    | '/admin'
+    | '/invite'
+    | '/portail'
+    | '/profile'
+    | '/transmissions'
+    | '/modules/$slug'
   id:
     | '__root__'
     | '/'
@@ -86,6 +108,7 @@ export interface FileRouteTypes {
     | '/portail'
     | '/profile'
     | '/transmissions'
+    | '/modules/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -95,6 +118,7 @@ export interface RootRouteChildren {
   PortailRoute: typeof PortailRoute
   ProfileRoute: typeof ProfileRoute
   TransmissionsRoute: typeof TransmissionsRoute
+  ModulesSlugRoute: typeof ModulesSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -141,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modules/$slug': {
+      id: '/modules/$slug'
+      path: '/modules/$slug'
+      fullPath: '/modules/$slug'
+      preLoaderRoute: typeof ModulesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -151,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortailRoute: PortailRoute,
   ProfileRoute: ProfileRoute,
   TransmissionsRoute: TransmissionsRoute,
+  ModulesSlugRoute: ModulesSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

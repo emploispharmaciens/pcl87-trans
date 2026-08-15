@@ -13,18 +13,21 @@ export function AppHeader() {
     <header className="sticky top-0 z-20 border-b bg-card/95 backdrop-blur">
       <div className="mx-auto grid max-w-4xl grid-cols-[minmax(0,1fr)_auto] items-center gap-2 px-3 py-2 sm:px-4">
         <Link
-          to="/"
+          to="/portail"
           className="flex min-w-0 items-center gap-2 font-bold text-module-text"
           onClick={() => setOpen(false)}
         >
           <i className="bi bi-hospital shrink-0 text-lg" aria-hidden="true" />
-          <span className="truncate">DB&amp;M</span>
+          <span className="truncate">Des Blocs &amp; Moi</span>
         </Link>
 
         <div className="flex shrink-0 items-center gap-1">
           <nav className="hidden items-center gap-1 sm:flex">
             <Button asChild variant="ghost" size="sm">
-              <Link to="/">Transmissions</Link>
+              <Link to="/portail">Portail</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/transmissions">Transmissions</Link>
             </Button>
             {isAdmin ? (
               <Button asChild variant="ghost" size="sm">
@@ -65,7 +68,13 @@ export function AppHeader() {
               <SheetTitle className="text-module-text">Menu</SheetTitle>
               <nav className="mt-4 flex flex-col gap-1">
                 <Button asChild variant="ghost" className="justify-start">
-                  <Link to="/" onClick={() => setOpen(false)}>
+                  <Link to="/portail" onClick={() => setOpen(false)}>
+                    <i className="bi bi-grid-3x3-gap mr-2" aria-hidden="true" />
+                    Portail
+                  </Link>
+                </Button>
+                <Button asChild variant="ghost" className="justify-start">
+                  <Link to="/transmissions" onClick={() => setOpen(false)}>
                     <i className="bi bi-chat-left-text mr-2" aria-hidden="true" />
                     Transmissions
                   </Link>
