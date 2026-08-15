@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as InviteRouteImport } from './routes/invite'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as TransmissionsRouteImport } from './routes/transmissions'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TransmissionsRoute = TransmissionsRouteImport.update({
+  id: '/transmissions',
+  path: '/transmissions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/invite': typeof InviteRoute
   '/profile': typeof ProfileRoute
+  '/transmissions': typeof TransmissionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/invite': typeof InviteRoute
   '/profile': typeof ProfileRoute
+  '/transmissions': typeof TransmissionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/admin': typeof AdminRoute
   '/invite': typeof InviteRoute
   '/profile': typeof ProfileRoute
+  '/transmissions': typeof TransmissionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/invite' | '/profile'
+  fullPaths: '/' | '/admin' | '/invite' | '/profile' | '/transmissions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/invite' | '/profile'
-  id: '__root__' | '/' | '/admin' | '/invite' | '/profile'
+  to: '/' | '/admin' | '/invite' | '/profile' | '/transmissions'
+  id: '__root__' | '/' | '/admin' | '/invite' | '/profile' | '/transmissions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +76,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRoute
   InviteRoute: typeof InviteRoute
   ProfileRoute: typeof ProfileRoute
+  TransmissionsRoute: typeof TransmissionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/transmissions': {
+      id: '/transmissions'
+      path: '/transmissions'
+      fullPath: '/transmissions'
+      preLoaderRoute: typeof TransmissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRoute,
   InviteRoute: InviteRoute,
   ProfileRoute: ProfileRoute,
+  TransmissionsRoute: TransmissionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
