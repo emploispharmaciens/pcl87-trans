@@ -31,47 +31,52 @@ export const Route = createFileRoute("/portail")({
 });
 
 function ModuleTile({ module }: { module: ModuleDef }) {
+  const isActive = module.status === "actif" && !!module.path;
+
   const body = (
-    <>
-      <span className="flex items-start gap-3">
-        <i className={`bi ${module.icon} mt-0.5 text-xl text-module-strong`} aria-hidden="true" />
-        <span className="min-w-0">
-          <span className="flex flex-wrap items-center gap-2 font-semibold text-module-text">
-            {module.name}
-            {module.status === "bientot" ? (
-              <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-                Bientôt
-              </span>
-            ) : null}
-          </span>
-          <span className="mt-1 block text-sm text-muted-foreground">{module.description}</span>
+    <span className="flex items-start gap-3">
+      <i
+        className={`bi ${module.icon} mt-0.5 text-xl ${isActive ? "text-module-strong" : "text-muted-foreground"}`}
+        aria-hidden="true"
+      />
+      <span className="min-w-0">
+        <span
+          className={`flex flex-wrap items-center gap-2 font-semibold ${isActive ? "text-module-text" : "text-muted-foreground"}`}
+        >
+          {module.name}
+          {isActive ? null : (
+            <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              Bientôt
+            </span>
+          )}
         </span>
+        <span className="mt-1 block text-sm text-muted-foreground">{module.description}</span>
       </span>
-    </>
+    </span>
   );
 
-  const className =
-    "module-card block p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring";
-
-  if (module.path === "/transmissions" || module.path === "/profile") {
+  if (isActive) {
     return (
-      <Link to={module.path} className={className}>
+      <Link
+        to={module.path!}
+        className="module-card block p-4 text-left transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring"
+      >
         {body}
       </Link>
     );
   }
 
   return (
-    <Link
-      to="/modules/$slug"
-      params={{ slug: module.slug }}
-      className={`${className} opacity-80`}
-      aria-label={`${module.name} — bientôt disponible`}
+    <div
+      className="module-card block cursor-not-allowed bg-muted/40 p-4 text-left opacity-60 grayscale"
+      aria-disabled="true"
+      title={`${module.name} — bientôt disponible`}
     >
       {body}
-    </Link>
+    </div>
   );
 }
+
 
 function PortalHub() {
   const { profile, isAdmin } = useAuth();
