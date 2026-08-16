@@ -34,6 +34,15 @@ export const MODULES: ModuleDef[] = [
     path: "/profile",
   },
   {
+    slug: "pharmacie",
+    name: "Pharmacie",
+    description: "Rechercher un médicament ou dispositif : classe, dotation ORTHO/SSPI, risque.",
+    icon: "bi-capsule",
+    family: "Pratique",
+    status: "actif",
+    path: "/pharmacie",
+  },
+  {
     slug: "documents",
     name: "Documents",
     description: "Consulter les documents institutionnels et protocoles PDF.",
