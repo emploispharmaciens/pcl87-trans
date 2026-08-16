@@ -164,9 +164,16 @@ function LandingPage() {
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {MODULES.map((m) => (
-                <div key={m.slug} className="module-card flex gap-3 p-4">
+                <div
+                  key={m.slug}
+                  className={`module-card flex gap-3 p-4 ${
+                    m.status === "actif" ? "" : "bg-muted/40 opacity-60 grayscale"
+                  }`}
+                >
                   <i
-                    className={`bi ${m.icon} mt-0.5 text-xl text-module-strong`}
+                    className={`bi ${m.icon} mt-0.5 text-xl ${
+                      m.status === "actif" ? "text-module-strong" : "text-muted-foreground"
+                    }`}
                     aria-hidden="true"
                   />
                   <div className="min-w-0">
@@ -186,6 +193,7 @@ function LandingPage() {
                   </div>
                 </div>
               ))}
+
             </div>
           </div>
         </section>
