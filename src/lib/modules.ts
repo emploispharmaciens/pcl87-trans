@@ -42,7 +42,7 @@ export const MODULES: ModuleDef[] = [
     status: "actif",
     path: "/pharmacie",
   },
-
+  {
     slug: "documents",
     name: "Documents",
     description: "Consulter les documents institutionnels et protocoles PDF.",
