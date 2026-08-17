@@ -135,3 +135,40 @@ export const PHARMA_PRODUCTS: PharmaProduct[] = [
 export const PHARMA_CLASSES: string[] = Array.from(
   new Set(PHARMA_PRODUCTS.map((p) => p.classe)),
 ).sort((a, b) => a.localeCompare(b, "fr"));
+
+export type PharmaFamily = "ANTISEPTIQUES" | "DISPOSITIFS" | "MEDICAMENTS" | "SOLUTES";
+
+export const PHARMA_FAMILIES: PharmaFamily[] = [
+  "ANTISEPTIQUES",
+  "DISPOSITIFS",
+  "MEDICAMENTS",
+  "SOLUTES",
+];
+
+/** Famille logistique déduite de la classe pharmaco-thérapeutique. */
+export function familyOf(product: PharmaProduct): PharmaFamily {
+  if (product.classe === "antiseptiques") return "ANTISEPTIQUES";
+  if (product.classe === "dispositifs") return "DISPOSITIFS";
+  if (product.classe === "solutes") return "SOLUTES";
+  return "MEDICAMENTS";
+}
+
+export const PHARMA_MAX_DOTATION = PHARMA_PRODUCTS.reduce(
+  (max, p) => Math.max(max, p.ortho ?? 0, p.sspi ?? 0),
+  0,
+);
+
+export function normalizeSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+export const SIGNALEMENT_KINDS = [
+  "rupture",
+  "peremption",
+  "erreur dotation",
+  "autre",
+] as const;
+export type SignalementKind = (typeof SIGNALEMENT_KINDS)[number];
