@@ -1,185 +1,67 @@
-import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AuthGate } from "@/components/AuthGate";
 import { AppHeader } from "@/components/AppHeader";
 import { ModuleBanner } from "@/components/ModuleBanner";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { PHARMA_CLASSES, PHARMA_PRODUCTS, type PharmaProduct } from "@/lib/pharmacy";
 
 export const Route = createFileRoute("/pharmacie")({
-  head: () => ({
-    meta: [
-      { title: "Pharmacie — référentiel produits du bloc — Des Blocs & Moi" },
-      {
-        name: "description",
-        content:
-          "Rechercher un médicament ou un dispositif du bloc : classe thérapeutique, dotation ORTHO et SSPI, médicaments à risque.",
-      },
-      { property: "og:title", content: "Pharmacie — référentiel produits du bloc" },
-      {
-        property: "og:description",
-        content: "Référentiel pharmaceutique du bloc : classes, dotations par salle et alertes risque.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "robots", content: "noindex" },
-    ],
-  }),
   component: () => (
     <AuthGate>
-      <PharmacyModule />
+      <PharmacyLayout />
     </AuthGate>
   ),
 });
 
-type SiteFilter = "all" | "ORTHO" | "SSPI";
+const TABS = [
+  { to: "/pharmacie", label: "Recherche", icon: "bi-search", exact: true },
+  { to: "/pharmacie/comparatif", label: "Comparatif", icon: "bi-columns-gap" },
+  { to: "/pharmacie/checklist", label: "Check bloc", icon: "bi-check2-square" },
+  { to: "/pharmacie/signalements", label: "Signaler", icon: "bi-flag" },
+] as const;
 
-function normalize(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
-
-function ProductCard({ product }: { product: PharmaProduct }) {
+function PharmacyLayout() {
   return (
-    <article className="module-card p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h3 className="font-semibold uppercase text-module-text">{product.label}</h3>
-          <p className="text-sm uppercase text-muted-foreground">{product.dci}</p>
-        </div>
-        {product.risque ? (
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold uppercase text-destructive">
-            <i className="bi bi-exclamation-triangle" aria-hidden="true" />
-            Risque
-          </span>
-        ) : null}
-      </div>
-
-      <div className="mt-3 flex flex-wrap gap-2 text-xs font-medium">
-        <span className="rounded-full bg-module-strong/10 px-2 py-0.5 uppercase text-module-strong">
-          {product.classe}
-        </span>
-        {product.ortho !== null ? (
-          <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-            ORTHO · {product.ortho} {product.unite}
-          </span>
-        ) : null}
-        {product.sspi !== null ? (
-          <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-            SSPI · {product.sspi} {product.unite}
-          </span>
-        ) : null}
-      </div>
-    </article>
-  );
-}
-
-function PharmacyModule() {
-  const [search, setSearch] = useState("");
-  const [classe, setClasse] = useState("all");
-  const [site, setSite] = useState<SiteFilter>("all");
-  const [riskOnly, setRiskOnly] = useState(false);
-
-  const results = useMemo(() => {
-    const q = normalize(search.trim());
-    return PHARMA_PRODUCTS.filter((p) => {
-      if (q && !normalize(`${p.label} ${p.dci} ${p.classe}`).includes(q)) return false;
-      if (classe !== "all" && p.classe !== classe) return false;
-      if (site === "ORTHO" && p.ortho === null) return false;
-      if (site === "SSPI" && p.sspi === null) return false;
-      if (riskOnly && !p.risque) return false;
-      return true;
-    });
-  }, [search, classe, site, riskOnly]);
-
-  return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-20 sm:pb-0">
       <AppHeader />
       <ModuleBanner
         icon="bi-capsule"
         title="Pharmacie"
-        subtitle="Référentiel produits du bloc : classes, dotations par salle et médicaments à risque."
+        subtitle="Référentiel produits du bloc : classes, dotations par salle, comparatif et signalements."
       />
 
-      <main className="mx-auto max-w-4xl px-4 py-6">
-        <div className="module-panel grid grid-cols-2 gap-2 p-2 sm:flex sm:flex-wrap sm:items-center">
-          <div className="relative col-span-2 min-w-0 sm:min-w-40 sm:flex-1">
-            <i
-              className="bi bi-search pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground"
-              aria-hidden="true"
-            />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Propofol, céfazoline, seringue…"
-              aria-label="Rechercher un produit"
-              maxLength={80}
-              className="pl-9"
-            />
-          </div>
-
-          <Select value={classe} onValueChange={setClasse}>
-            <SelectTrigger className="w-full sm:w-52" aria-label="Classe">
-              <SelectValue placeholder="Classe" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les classes</SelectItem>
-              {PHARMA_CLASSES.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={site} onValueChange={(v) => setSite(v as SiteFilter)}>
-            <SelectTrigger className="w-full sm:w-40" aria-label="Salle">
-              <SelectValue placeholder="Salle" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Toutes les salles</SelectItem>
-              <SelectItem value="ORTHO">ORTHO</SelectItem>
-              <SelectItem value="SSPI">SSPI</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Button
-            type="button"
-            variant={riskOnly ? "default" : "outline"}
-            onClick={() => setRiskOnly((v) => !v)}
-            className="col-span-2 sm:col-span-1"
-            aria-pressed={riskOnly}
-          >
-            <i className="bi bi-exclamation-triangle mr-2" aria-hidden="true" />
-            À risque
-          </Button>
-        </div>
-
-        <p className="mt-4 text-sm text-muted-foreground">
-          {results.length} produit{results.length > 1 ? "s" : ""}
-        </p>
-
-        <div className="mt-3 grid gap-3">
-          {results.map((p) => (
-            <ProductCard key={p.label} product={p} />
+      <nav className="hidden border-b border-border bg-card sm:block" aria-label="Sections pharmacie">
+        <div className="mx-auto flex max-w-4xl gap-1 px-4">
+          {TABS.map((tab) => (
+            <Link
+              key={tab.to}
+              to={tab.to}
+              activeOptions={{ exact: tab.exact ?? false }}
+              className="flex items-center gap-2 border-b-2 border-transparent px-3 py-3 text-sm font-semibold text-muted-foreground transition hover:text-module-text data-[status=active]:border-module-strong data-[status=active]:text-module-strong"
+            >
+              <i className={`bi ${tab.icon}`} aria-hidden="true" />
+              {tab.label}
+            </Link>
           ))}
-          {results.length === 0 ? (
-            <div className="module-card p-6 text-center text-sm text-muted-foreground">
-              Aucun produit ne correspond à cette recherche.
-            </div>
-          ) : null}
         </div>
-      </main>
+      </nav>
+
+      <Outlet />
+
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-card sm:hidden"
+        aria-label="Sections pharmacie"
+      >
+        {TABS.map((tab) => (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            activeOptions={{ exact: tab.exact ?? false }}
+            className="flex min-h-16 flex-col items-center justify-center gap-1 text-[11px] font-semibold text-muted-foreground data-[status=active]:text-module-strong"
+          >
+            <i className={`bi ${tab.icon} text-lg`} aria-hidden="true" />
+            {tab.label}
+          </Link>
+        ))}
+      </nav>
     </div>
   );
 }
