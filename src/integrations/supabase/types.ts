@@ -158,6 +158,47 @@ export type Database = {
           },
         ]
       }
+      pharma_signalements: {
+        Row: {
+          author_id: string
+          comment: string
+          created_at: string
+          id: string
+          initials: string | null
+          kind: string
+          product_label: string
+          site: string
+        }
+        Insert: {
+          author_id: string
+          comment?: string
+          created_at?: string
+          id?: string
+          initials?: string | null
+          kind: string
+          product_label: string
+          site: string
+        }
+        Update: {
+          author_id?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          initials?: string | null
+          kind?: string
+          product_label?: string
+          site?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharma_signalements_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           approval: Database["public"]["Enums"]["approval_status"]
