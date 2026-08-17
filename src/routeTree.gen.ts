@@ -17,6 +17,7 @@ import { Route as PortailRouteImport } from './routes/portail'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as TransmissionsRouteImport } from './routes/transmissions'
 import { Route as ModulesSlugRouteImport } from './routes/modules.$slug'
+import { Route as PharmacieIndexRouteImport } from './routes/pharmacie.index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -58,37 +59,44 @@ const ModulesSlugRoute = ModulesSlugRouteImport.update({
   path: '/modules/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PharmacieIndexRoute = PharmacieIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PharmacieRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/invite': typeof InviteRoute
-  '/pharmacie': typeof PharmacieRoute
+  '/pharmacie': typeof PharmacieRouteWithChildren
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
+  '/pharmacie/': typeof PharmacieIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/invite': typeof InviteRoute
-  '/pharmacie': typeof PharmacieRoute
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
+  '/pharmacie': typeof PharmacieIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/invite': typeof InviteRoute
-  '/pharmacie': typeof PharmacieRoute
+  '/pharmacie': typeof PharmacieRouteWithChildren
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
+  '/pharmacie/': typeof PharmacieIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,16 +109,17 @@ export interface FileRouteTypes {
     | '/profile'
     | '/transmissions'
     | '/modules/$slug'
+    | '/pharmacie/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/admin'
     | '/invite'
-    | '/pharmacie'
     | '/portail'
     | '/profile'
     | '/transmissions'
     | '/modules/$slug'
+    | '/pharmacie'
   id:
     | '__root__'
     | '/'
@@ -121,13 +130,14 @@ export interface FileRouteTypes {
     | '/profile'
     | '/transmissions'
     | '/modules/$slug'
+    | '/pharmacie/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   InviteRoute: typeof InviteRoute
-  PharmacieRoute: typeof PharmacieRoute
+  PharmacieRoute: typeof PharmacieRouteWithChildren
   PortailRoute: typeof PortailRoute
   ProfileRoute: typeof ProfileRoute
   TransmissionsRoute: typeof TransmissionsRoute
@@ -192,14 +202,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModulesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pharmacie/': {
+      id: '/pharmacie/'
+      path: '/'
+      fullPath: '/pharmacie/'
+      preLoaderRoute: typeof PharmacieIndexRouteImport
+      parentRoute: typeof PharmacieRoute
+    }
   }
 }
+
+interface PharmacieRouteChildren {
+  PharmacieIndexRoute: typeof PharmacieIndexRoute
+}
+
+const PharmacieRouteChildren: PharmacieRouteChildren = {
+  PharmacieIndexRoute: PharmacieIndexRoute,
+}
+
+const PharmacieRouteWithChildren = PharmacieRoute._addFileChildren(
+  PharmacieRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   InviteRoute: InviteRoute,
-  PharmacieRoute: PharmacieRoute,
+  PharmacieRoute: PharmacieRouteWithChildren,
   PortailRoute: PortailRoute,
   ProfileRoute: ProfileRoute,
   TransmissionsRoute: TransmissionsRoute,
