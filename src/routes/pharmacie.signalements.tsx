@@ -15,7 +15,7 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 import { PHARMA_PRODUCTS, SIGNALEMENT_KINDS, type PharmaSite } from "@/lib/pharmacy";
 import { createSignalement, fetchSignalements, signalementsToCsv } from "@/lib/pharma-api";
-import { formatDateTime } from "@/lib/format";
+import { fullDate } from "@/lib/format";
 
 export const Route = createFileRoute("/pharmacie/signalements")({
   head: () => ({
@@ -217,7 +217,7 @@ function Signalements() {
                 <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
                   {r.kind}
                 </span>
-                <span className="text-muted-foreground">{formatDateTime(r.created_at)}</span>
+                <span className="text-muted-foreground">{fullDate(r.created_at)}</span>
                 {r.initials ? (
                   <span className="text-muted-foreground">· {r.initials}</span>
                 ) : null}
