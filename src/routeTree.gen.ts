@@ -20,6 +20,7 @@ import { Route as ModulesSlugRouteImport } from './routes/modules.$slug'
 import { Route as PharmacieIndexRouteImport } from './routes/pharmacie.index'
 import { Route as PharmacieChecklistRouteImport } from './routes/pharmacie.checklist'
 import { Route as PharmacieComparatifRouteImport } from './routes/pharmacie.comparatif'
+import { Route as PharmacieSignalementsRouteImport } from './routes/pharmacie.signalements'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -76,6 +77,11 @@ const PharmacieComparatifRoute = PharmacieComparatifRouteImport.update({
   path: '/comparatif',
   getParentRoute: () => PharmacieRoute,
 } as any)
+const PharmacieSignalementsRoute = PharmacieSignalementsRouteImport.update({
+  id: '/signalements',
+  path: '/signalements',
+  getParentRoute: () => PharmacieRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
   '/pharmacie/comparatif': typeof PharmacieComparatifRoute
+  '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
 }
 export interface FileRoutesByTo {
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
   '/pharmacie/comparatif': typeof PharmacieComparatifRoute
+  '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/pharmacie': typeof PharmacieIndexRoute
 }
 export interface FileRoutesById {
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
   '/pharmacie/comparatif': typeof PharmacieComparatifRoute
+  '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
 }
 export interface FileRouteTypes {
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/modules/$slug'
     | '/pharmacie/checklist'
     | '/pharmacie/comparatif'
+    | '/pharmacie/signalements'
     | '/pharmacie/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -141,6 +151,7 @@ export interface FileRouteTypes {
     | '/modules/$slug'
     | '/pharmacie/checklist'
     | '/pharmacie/comparatif'
+    | '/pharmacie/signalements'
     | '/pharmacie'
   id:
     | '__root__'
@@ -154,6 +165,7 @@ export interface FileRouteTypes {
     | '/modules/$slug'
     | '/pharmacie/checklist'
     | '/pharmacie/comparatif'
+    | '/pharmacie/signalements'
     | '/pharmacie/'
   fileRoutesById: FileRoutesById
 }
@@ -247,18 +259,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PharmacieComparatifRouteImport
       parentRoute: typeof PharmacieRoute
     }
+    '/pharmacie/signalements': {
+      id: '/pharmacie/signalements'
+      path: '/signalements'
+      fullPath: '/pharmacie/signalements'
+      preLoaderRoute: typeof PharmacieSignalementsRouteImport
+      parentRoute: typeof PharmacieRoute
+    }
   }
 }
 
 interface PharmacieRouteChildren {
   PharmacieChecklistRoute: typeof PharmacieChecklistRoute
   PharmacieComparatifRoute: typeof PharmacieComparatifRoute
+  PharmacieSignalementsRoute: typeof PharmacieSignalementsRoute
   PharmacieIndexRoute: typeof PharmacieIndexRoute
 }
 
 const PharmacieRouteChildren: PharmacieRouteChildren = {
   PharmacieChecklistRoute: PharmacieChecklistRoute,
   PharmacieComparatifRoute: PharmacieComparatifRoute,
+  PharmacieSignalementsRoute: PharmacieSignalementsRoute,
   PharmacieIndexRoute: PharmacieIndexRoute,
 }
 
