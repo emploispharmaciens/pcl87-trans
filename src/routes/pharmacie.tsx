@@ -11,12 +11,14 @@ export const Route = createFileRoute("/pharmacie")({
   ),
 });
 
-const TABS = [
+type Tab = { to: string; label: string; icon: string; exact?: boolean };
+
+const TABS: Tab[] = [
   { to: "/pharmacie", label: "Recherche", icon: "bi-search", exact: true },
   { to: "/pharmacie/comparatif", label: "Comparatif", icon: "bi-columns-gap" },
   { to: "/pharmacie/checklist", label: "Check bloc", icon: "bi-check2-square" },
   { to: "/pharmacie/signalements", label: "Signaler", icon: "bi-flag" },
-] as const;
+];
 
 function PharmacyLayout() {
   return (
