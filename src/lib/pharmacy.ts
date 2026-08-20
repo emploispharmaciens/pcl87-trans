@@ -172,3 +172,40 @@ export const SIGNALEMENT_KINDS = [
   "autre",
 ] as const;
 export type SignalementKind = (typeof SIGNALEMENT_KINDS)[number];
+
+/** Identifiant d'URL stable d'un produit (dérivé du libellé). */
+export function productSlug(label: string): string {
+  return normalizeSearch(label)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function findProductBySlug(slug: string): PharmaProduct | undefined {
+  return PHARMA_PRODUCTS.find((p) => productSlug(p.label) === slug);
+}
+
+/** Contenu structuré d'une fiche produit (généré par IA, stocké en base). */
+export type FicheContent = {
+  resume: string;
+  indications: string[];
+  posologie: string[];
+  dilution: string[];
+  contre_indications: string[];
+  effets_indesirables: string[];
+  surveillance: string[];
+  antidote: string[];
+  vigilance_bloc: string[];
+  conservation: string[];
+};
+
+export const FICHE_SECTIONS: { key: keyof Omit<FicheContent, "resume">; label: string; icon: string }[] = [
+  { key: "indications", label: "Indications au bloc", icon: "bi-clipboard-pulse" },
+  { key: "posologie", label: "Posologie usuelle adulte", icon: "bi-eyedropper" },
+  { key: "dilution", label: "Dilution & administration", icon: "bi-droplet-half" },
+  { key: "contre_indications", label: "Contre-indications", icon: "bi-slash-circle" },
+  { key: "effets_indesirables", label: "Effets indésirables", icon: "bi-exclamation-circle" },
+  { key: "surveillance", label: "Surveillance", icon: "bi-activity" },
+  { key: "antidote", label: "Antidote / conduite à tenir", icon: "bi-shield-plus" },
+  { key: "vigilance_bloc", label: "Points de vigilance bloc", icon: "bi-cone-striped" },
+  { key: "conservation", label: "Conservation & stockage", icon: "bi-thermometer-half" },
+];
