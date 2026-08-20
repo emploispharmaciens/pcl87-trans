@@ -158,6 +158,50 @@ export type Database = {
           },
         ]
       }
+      pharma_fiches: {
+        Row: {
+          content: Json
+          created_at: string
+          dci: string
+          generated_by: string | null
+          id: string
+          model: string
+          product_label: string
+          product_slug: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          created_at?: string
+          dci?: string
+          generated_by?: string | null
+          id?: string
+          model?: string
+          product_label: string
+          product_slug: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          created_at?: string
+          dci?: string
+          generated_by?: string | null
+          id?: string
+          model?: string
+          product_label?: string
+          product_slug?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharma_fiches_generated_by_fkey"
+            columns: ["generated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pharma_signalements: {
         Row: {
           author_id: string
