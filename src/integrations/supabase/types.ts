@@ -158,6 +158,48 @@ export type Database = {
           },
         ]
       }
+      pharma_fiche_jobs: {
+        Row: {
+          created_at: string
+          created_count: number
+          cron_token: string
+          id: string
+          last_error: string | null
+          last_run_at: string | null
+          lease_until: string | null
+          pause_reason: string | null
+          paused_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_count?: number
+          cron_token?: string
+          id: string
+          last_error?: string | null
+          last_run_at?: string | null
+          lease_until?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_count?: number
+          cron_token?: string
+          id?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          lease_until?: string | null
+          pause_reason?: string | null
+          paused_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pharma_fiches: {
         Row: {
           content: Json
