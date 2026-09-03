@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isAdmin, isApproved } from "@/lib/authz.server";
-import { PHARMA_PRODUCTS, productSlug } from "@/lib/pharmacy";
+import { PHARMA_PRODUCTS, productSlug, type FicheContent } from "@/lib/pharmacy";
 
 const slugInput = z.object({ slug: z.string().min(1).max(160) });
 
@@ -10,7 +10,7 @@ export type FicheRow = {
   product_slug: string;
   product_label: string;
   dci: string;
-  content: Record<string, unknown>;
+  content: FicheContent;
   model: string;
   updated_at: string;
 };
