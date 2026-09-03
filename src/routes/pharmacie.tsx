@@ -17,6 +17,7 @@ const TABS: Tab[] = [
   { to: "/pharmacie", label: "Recherche", icon: "bi-search", exact: true },
   { to: "/pharmacie/comparatif", label: "Comparatif", icon: "bi-columns-gap" },
   { to: "/pharmacie/checklist", label: "Check bloc", icon: "bi-check2-square" },
+  { to: "/pharmacie/fiches", label: "Fiches", icon: "bi-file-medical" },
   { to: "/pharmacie/signalements", label: "Signaler", icon: "bi-flag" },
 ];
 
@@ -49,7 +50,7 @@ function PharmacyLayout() {
       <Outlet />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-border bg-card sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-border bg-card sm:hidden"
         aria-label="Sections pharmacie"
       >
         {TABS.map((tab) => (

@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -11,6 +11,7 @@ import {
   PHARMA_PRODUCTS,
   familyOf,
   normalizeSearch,
+  productSlug,
   type PharmaFamily,
   type PharmaProduct,
 } from "@/lib/pharmacy";
@@ -67,7 +68,11 @@ function Chip({
 
 function ProductCard({ product }: { product: PharmaProduct }) {
   return (
-    <article className="module-card p-4">
+    <Link
+      to="/pharmacie/fiche/$slug"
+      params={{ slug: productSlug(product.label) }}
+      className="module-card block p-4 transition hover:border-module-strong"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="font-semibold uppercase text-module-text">{product.label}</h3>
@@ -98,8 +103,12 @@ function ProductCard({ product }: { product: PharmaProduct }) {
             SSPI · {product.sspi} {product.unite}
           </span>
         ) : null}
+        <span className="ml-auto flex items-center gap-1 text-module-strong">
+          Fiche produit
+          <i className="bi bi-chevron-right" aria-hidden="true" />
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }
 
