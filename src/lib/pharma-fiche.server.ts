@@ -17,6 +17,16 @@ export const ficheSchema = z.object({
 
 export type FicheContent = z.infer<typeof ficheSchema>;
 
+/** Erreur de la passerelle IA, porteuse du statut HTTP pour le circuit breaker. */
+export class AiGatewayError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "AiGatewayError";
+    this.status = status;
+  }
+}
+
 export const FICHE_MODEL = "google/gemini-2.5-flash";
 
 const SYSTEM_PROMPT = `Tu es pharmacien hospitalier français, référent bloc opératoire.
