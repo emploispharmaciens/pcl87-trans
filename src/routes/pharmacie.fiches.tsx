@@ -6,7 +6,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
-import { generateMissingFiches, listFicheSlugs } from "@/lib/pharma-fiche.functions";
+import {
+  generateMissingFiches,
+  getFicheJob,
+  listFicheSlugs,
+  resumeFicheJob,
+} from "@/lib/pharma-fiche.functions";
+import { fullDate } from "@/lib/format";
 import { PHARMA_PRODUCTS, normalizeSearch, productSlug } from "@/lib/pharmacy";
 
 export const Route = createFileRoute("/pharmacie/fiches")({
