@@ -115,7 +115,7 @@ function FichesPage() {
           </p>
           <p className="text-xs text-muted-foreground">
             Les fiches manquantes se génèrent automatiquement par petits lots (une exécution par
-            heure) ; une fiche s'génère aussi à sa première ouverture.
+            heure) ; une fiche se génère aussi à sa première ouverture.
           </p>
         </div>
         {isAdmin ? (
