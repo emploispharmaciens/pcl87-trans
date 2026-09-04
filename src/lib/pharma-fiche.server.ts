@@ -62,12 +62,14 @@ export async function generateFicheContent(product: PharmaProduct): Promise<Fich
   });
 
   if (response.status === 429)
-    throw new Error("Trop de générations en cours, réessayez dans une minute.");
+    throw new AiGatewayError(429, "Trop de générations en cours, réessayez dans une minute.");
   if (response.status === 402)
-    throw new Error("Crédits IA épuisés : rechargez l'espace de travail Lovable.");
+    throw new AiGatewayError(402, "Crédits IA épuisés : rechargez l'espace de travail Lovable.");
+  if (response.status === 403)
+    throw new AiGatewayError(403, "IA bloquée pour cet espace de travail (limite ou clé).");
   if (!response.ok) {
     console.error("AI gateway error", response.status, await response.text());
-    throw new Error("La génération de la fiche a échoué.");
+    throw new AiGatewayError(response.status, "La génération de la fiche a échoué.");
   }
 
   const payload = (await response.json()) as {
