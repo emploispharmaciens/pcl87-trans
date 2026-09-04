@@ -44,6 +44,8 @@ function FichesPage() {
 
   const fetchSlugs = useServerFn(listFicheSlugs);
   const runBatch = useServerFn(generateMissingFiches);
+  const fetchJob = useServerFn(getFicheJob);
+  const resumeJob = useServerFn(resumeFicheJob);
 
   const slugsQuery = useQuery({
     queryKey: ["pharma-fiche-slugs"],
@@ -51,14 +53,44 @@ function FichesPage() {
     retry: false,
   });
 
+  const jobQuery = useQuery({
+    queryKey: ["pharma-fiche-job"],
+    queryFn: () => fetchJob({}),
+    enabled: isAdmin,
+    retry: false,
+    refetchInterval: 60_000,
+  });
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["pharma-fiche-slugs"] });
+    queryClient.invalidateQueries({ queryKey: ["pharma-fiche-job"] });
+  };
+
   const batchMutation = useMutation({
     mutationFn: () => runBatch({ data: { limit: 5 } }),
     onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ["pharma-fiche-slugs"] });
+      invalidate();
+      if (result.status === "paused") {
+        toast.error(result.reason ?? "Génération en pause (crédits IA).");
+        return;
+      }
+      if (result.status === "locked" || result.status === "skipped") {
+        toast.info(result.reason ?? "Génération non lancée.");
+        return;
+      }
       toast.success(
         `${result.created} fiche(s) générée(s), ${result.remaining} restante(s)` +
           (result.failed.length > 0 ? ` — ${result.failed.length} échec(s)` : ""),
       );
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const resumeMutation = useMutation({
+    mutationFn: () => resumeJob({}),
+    onSuccess: () => {
+      invalidate();
+      toast.success("Génération automatique réactivée.");
     },
     onError: (error: Error) => toast.error(error.message),
   });
@@ -72,6 +104,8 @@ function FichesPage() {
     ).map((p) => ({ product: p, slug: productSlug(p.label) }));
   }, [search]);
 
+  const job = jobQuery.data;
+
   return (
     <main className="mx-auto max-w-4xl px-4 py-6">
       <div className="module-panel flex flex-wrap items-center justify-between gap-3 p-4">
@@ -80,8 +114,8 @@ function FichesPage() {
             {done.size} / {PHARMA_PRODUCTS.length} fiches générées
           </p>
           <p className="text-xs text-muted-foreground">
-            Une fiche se génère automatiquement à sa première ouverture ; les admins peuvent lancer
-            la génération en lot.
+            Les fiches manquantes se génèrent automatiquement par petits lots (une exécution par
+            heure) ; une fiche s'génère aussi à sa première ouverture.
           </p>
         </div>
         {isAdmin ? (
@@ -95,6 +129,42 @@ function FichesPage() {
           </Button>
         ) : null}
       </div>
+
+      {isAdmin && job ? (
+        <div className="module-card mt-4 flex flex-wrap items-center justify-between gap-3 p-4">
+          <div className="min-w-0 text-xs text-muted-foreground">
+            <p className="text-sm font-semibold text-module-text">
+              Génération automatique :{" "}
+              {job.status === "paused"
+                ? "en pause"
+                : job.status === "running"
+                  ? "en cours"
+                  : "active"}
+            </p>
+            {job.last_run_at ? <p>Dernière exécution : {fullDate(job.last_run_at)}</p> : null}
+            {job.status === "paused" ? (
+              <p className="text-destructive">
+                {job.pause_reason ?? "Crédits IA indisponibles."} Nouvelle tentative automatique 24 h
+                après la mise en pause.
+              </p>
+            ) : job.last_error ? (
+              <p>Dernier incident : {job.last_error}</p>
+            ) : null}
+          </div>
+          {job.status === "paused" ? (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={resumeMutation.isPending}
+              onClick={() => resumeMutation.mutate()}
+            >
+              <i className="bi bi-arrow-clockwise mr-2" aria-hidden="true" />
+              Reprendre maintenant
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
+
 
       <Input
         value={search}
