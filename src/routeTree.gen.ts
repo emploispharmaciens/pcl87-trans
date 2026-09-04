@@ -22,6 +22,7 @@ import { Route as PharmacieChecklistRouteImport } from './routes/pharmacie.check
 import { Route as PharmacieComparatifRouteImport } from './routes/pharmacie.comparatif'
 import { Route as PharmacieFichesRouteImport } from './routes/pharmacie.fiches'
 import { Route as PharmacieSignalementsRouteImport } from './routes/pharmacie.signalements'
+import { Route as ApiPublicPharmaFichesCronRouteImport } from './routes/api/public/pharma-fiches-cron'
 import { Route as PharmacieFicheSlugRouteImport } from './routes/pharmacie.fiche.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -89,6 +90,12 @@ const PharmacieSignalementsRoute = PharmacieSignalementsRouteImport.update({
   path: '/signalements',
   getParentRoute: () => PharmacieRoute,
 } as any)
+const ApiPublicPharmaFichesCronRoute =
+  ApiPublicPharmaFichesCronRouteImport.update({
+    id: '/api/public/pharma-fiches-cron',
+    path: '/api/public/pharma-fiches-cron',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PharmacieFicheSlugRoute = PharmacieFicheSlugRouteImport.update({
   id: '/fiche/$slug',
   path: '/fiche/$slug',
@@ -109,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/pharmacie/fiches': typeof PharmacieFichesRoute
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
+  '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
 }
 export interface FileRoutesByTo {
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/pharmacie/fiches': typeof PharmacieFichesRoute
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/pharmacie': typeof PharmacieIndexRoute
+  '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
 }
 export interface FileRoutesById {
@@ -141,6 +150,7 @@ export interface FileRoutesById {
   '/pharmacie/fiches': typeof PharmacieFichesRoute
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
+  '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
 }
 export interface FileRouteTypes {
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/pharmacie/fiches'
     | '/pharmacie/signalements'
     | '/pharmacie/'
+    | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/pharmacie/fiches'
     | '/pharmacie/signalements'
     | '/pharmacie'
+    | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
   id:
     | '__root__'
@@ -190,6 +202,7 @@ export interface FileRouteTypes {
     | '/pharmacie/fiches'
     | '/pharmacie/signalements'
     | '/pharmacie/'
+    | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -202,6 +215,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   TransmissionsRoute: typeof TransmissionsRoute
   ModulesSlugRoute: typeof ModulesSlugRoute
+  ApiPublicPharmaFichesCronRoute: typeof ApiPublicPharmaFichesCronRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -297,6 +311,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PharmacieSignalementsRouteImport
       parentRoute: typeof PharmacieRoute
     }
+    '/api/public/pharma-fiches-cron': {
+      id: '/api/public/pharma-fiches-cron'
+      path: '/api/public/pharma-fiches-cron'
+      fullPath: '/api/public/pharma-fiches-cron'
+      preLoaderRoute: typeof ApiPublicPharmaFichesCronRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/pharmacie/fiche/$slug': {
       id: '/pharmacie/fiche/$slug'
       path: '/fiche/$slug'
@@ -338,6 +359,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   TransmissionsRoute: TransmissionsRoute,
   ModulesSlugRoute: ModulesSlugRoute,
+  ApiPublicPharmaFichesCronRoute: ApiPublicPharmaFichesCronRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

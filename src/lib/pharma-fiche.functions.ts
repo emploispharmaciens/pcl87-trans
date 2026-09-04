@@ -108,41 +108,44 @@ export const generateMissingFiches = createServerFn({ method: "POST" })
     if (!(await isAdmin(context.supabase, context.userId)))
       throw new Error("Action réservée aux administrateurs");
 
-    const { generateFicheContent, FICHE_MODEL } = await import("@/lib/pharma-fiche.server");
+    const { runFicheBatch } = await import("@/lib/pharma-fiche-batch.server");
+    return runFicheBatch({ limit: data.limit, generatedBy: context.userId, force: true });
+  });
+
+export type FicheJob = {
+  status: string;
+  pause_reason: string | null;
+  paused_at: string | null;
+  last_run_at: string | null;
+  last_error: string | null;
+  created_count: number;
+};
+
+/** État du travail de génération automatique (admin uniquement). */
+export const getFicheJob = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<FicheJob | null> => {
+    if (!(await isAdmin(context.supabase, context.userId)))
+      throw new Error("Action réservée aux administrateurs");
+    const { data } = await context.supabase
+      .from("pharma_fiche_jobs")
+      .select("status, pause_reason, paused_at, last_run_at, last_error, created_count")
+      .eq("id", "fiches")
+      .maybeSingle();
+    return (data as FicheJob | null) ?? null;
+  });
+
+/** Relance le travail mis en pause (admin uniquement). */
+export const resumeFicheJob = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    if (!(await isAdmin(context.supabase, context.userId)))
+      throw new Error("Action réservée aux administrateurs");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-    const { data: rows } = await supabaseAdmin.from("pharma_fiches").select("product_slug");
-    const done = new Set((rows ?? []).map((r) => r.product_slug));
-    const todo = PHARMA_PRODUCTS.filter((p) => !done.has(productSlug(p.label))).slice(0, data.limit);
-
-    let created = 0;
-    const failed: string[] = [];
-    for (const product of todo) {
-      try {
-        const content = await generateFicheContent(product);
-        const { error } = await supabaseAdmin.from("pharma_fiches").upsert(
-          {
-            product_slug: productSlug(product.label),
-            product_label: product.label,
-            dci: product.dci,
-            content,
-            model: FICHE_MODEL,
-            generated_by: context.userId,
-          },
-          { onConflict: "product_slug" },
-        );
-        if (error) throw new Error(error.message);
-        created += 1;
-      } catch (error) {
-        console.error("fiche generation failed", product.label, error);
-        failed.push(product.label);
-      }
-    }
-
-    return {
-      created,
-      failed,
-      remaining: PHARMA_PRODUCTS.length - done.size - created,
-      total: PHARMA_PRODUCTS.length,
-    };
+    const { error } = await supabaseAdmin
+      .from("pharma_fiche_jobs")
+      .update({ status: "idle", pause_reason: null, paused_at: null, lease_until: null })
+      .eq("id", "fiches");
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
