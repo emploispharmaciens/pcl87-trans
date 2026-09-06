@@ -122,6 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(null);
       setProfile(null);
       setRoles([]);
+      if (typeof window !== "undefined") window.location.assign("/");
     },
   };
 
