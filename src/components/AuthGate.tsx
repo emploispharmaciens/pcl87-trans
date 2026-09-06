@@ -25,17 +25,27 @@ function SignIn() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <ModuleBanner title="Transmissions" subtitle="Le journal de relève du bloc opératoire." />
+      <ModuleBanner
+        icon="bi-hospital"
+        title="Des Blocs & Moi"
+        subtitle="Espace réservé aux équipes du bloc opératoire."
+      />
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="module-card w-full max-w-sm p-6 text-center">
-          <i className="bi bi-chat-square-text text-3xl text-module-strong" aria-hidden="true" />
-          <h2 className="mt-3 text-lg font-semibold">Bienvenue</h2>
+          <i className="bi bi-shield-lock text-3xl text-module-strong" aria-hidden="true" />
+          <h2 className="mt-3 text-lg font-semibold">Connexion requise</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Connectez-vous pour lire les transmissions.
+            Connectez-vous pour accéder aux modules du bloc.
           </p>
           <Button className="mt-5 w-full" onClick={() => void signIn()} disabled={busy}>
             <i className="bi bi-google mr-2" aria-hidden="true" />
             Se connecter avec Google
+          </Button>
+          <Button asChild variant="ghost" className="mt-2 w-full">
+            <a href="/">
+              <i className="bi bi-arrow-left mr-2" aria-hidden="true" />
+              Retour à l'accueil
+            </a>
           </Button>
         </div>
       </div>
@@ -49,7 +59,11 @@ function PendingApproval() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <ModuleBanner title="Transmissions" subtitle="Votre accès est en cours de validation." />
+      <ModuleBanner
+        icon="bi-hourglass-split"
+        title="Des Blocs & Moi"
+        subtitle="Votre accès est en cours de validation."
+      />
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="module-card w-full max-w-md p-6 text-center">
           <i
@@ -62,7 +76,7 @@ function PendingApproval() {
           <p className="mt-2 text-sm text-muted-foreground">
             {refused
               ? "Votre accès n'est pas actif. Contactez un administrateur du bloc."
-              : "Un administrateur doit valider votre accès avant que vous puissiez consulter les transmissions. Vous recevrez un e-mail dès que votre accès sera activé."}
+              : "Un administrateur doit valider votre accès avant que vous puissiez accéder aux modules. Vous recevrez un e-mail dès que votre accès sera activé."}
           </p>
 
           <div className="mt-4 rounded-lg bg-module-soft px-4 py-3 text-left text-sm">
@@ -121,6 +135,12 @@ export function AuthGate({
         <div className="module-card max-w-sm p-6 text-center">
           <i className="bi bi-lock text-3xl text-muted-foreground" aria-hidden="true" />
           <h2 className="mt-3 font-semibold">Page réservée aux administrateurs</h2>
+          <Button asChild variant="outline" className="mt-4">
+            <a href="/portail">
+              <i className="bi bi-arrow-left mr-2" aria-hidden="true" />
+              Retour au portail
+            </a>
+          </Button>
         </div>
       </main>
     );
