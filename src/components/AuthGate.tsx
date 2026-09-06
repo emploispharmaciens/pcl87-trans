@@ -59,7 +59,11 @@ function PendingApproval() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <ModuleBanner title="Transmissions" subtitle="Votre accès est en cours de validation." />
+      <ModuleBanner
+        icon="bi-hourglass-split"
+        title="Des Blocs &amp; Moi"
+        subtitle="Votre accès est en cours de validation."
+      />
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="module-card w-full max-w-md p-6 text-center">
           <i
@@ -72,7 +76,7 @@ function PendingApproval() {
           <p className="mt-2 text-sm text-muted-foreground">
             {refused
               ? "Votre accès n'est pas actif. Contactez un administrateur du bloc."
-              : "Un administrateur doit valider votre accès avant que vous puissiez consulter les transmissions. Vous recevrez un e-mail dès que votre accès sera activé."}
+              : "Un administrateur doit valider votre accès avant que vous puissiez accéder aux modules. Vous recevrez un e-mail dès que votre accès sera activé."}
           </p>
 
           <div className="mt-4 rounded-lg bg-module-soft px-4 py-3 text-left text-sm">
@@ -131,6 +135,12 @@ export function AuthGate({
         <div className="module-card max-w-sm p-6 text-center">
           <i className="bi bi-lock text-3xl text-muted-foreground" aria-hidden="true" />
           <h2 className="mt-3 font-semibold">Page réservée aux administrateurs</h2>
+          <Button asChild variant="outline" className="mt-4">
+            <a href="/portail">
+              <i className="bi bi-arrow-left mr-2" aria-hidden="true" />
+              Retour au portail
+            </a>
+          </Button>
         </div>
       </main>
     );
