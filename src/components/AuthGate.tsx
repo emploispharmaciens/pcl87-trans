@@ -25,17 +25,27 @@ function SignIn() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <ModuleBanner title="Transmissions" subtitle="Le journal de relève du bloc opératoire." />
+      <ModuleBanner
+        icon="bi-hospital"
+        title="Des Blocs &amp; Moi"
+        subtitle="Espace réservé aux équipes du bloc opératoire."
+      />
       <div className="flex flex-1 items-center justify-center px-4 py-10">
         <div className="module-card w-full max-w-sm p-6 text-center">
-          <i className="bi bi-chat-square-text text-3xl text-module-strong" aria-hidden="true" />
-          <h2 className="mt-3 text-lg font-semibold">Bienvenue</h2>
+          <i className="bi bi-shield-lock text-3xl text-module-strong" aria-hidden="true" />
+          <h2 className="mt-3 text-lg font-semibold">Connexion requise</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Connectez-vous pour lire les transmissions.
+            Connectez-vous pour accéder aux modules du bloc.
           </p>
           <Button className="mt-5 w-full" onClick={() => void signIn()} disabled={busy}>
             <i className="bi bi-google mr-2" aria-hidden="true" />
             Se connecter avec Google
+          </Button>
+          <Button asChild variant="ghost" className="mt-2 w-full">
+            <a href="/">
+              <i className="bi bi-arrow-left mr-2" aria-hidden="true" />
+              Retour à l'accueil
+            </a>
           </Button>
         </div>
       </div>
