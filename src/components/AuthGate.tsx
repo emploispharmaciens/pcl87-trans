@@ -27,7 +27,7 @@ function SignIn() {
     <main className="flex min-h-screen flex-col">
       <ModuleBanner
         icon="bi-hospital"
-        title="Des Blocs &amp; Moi"
+        title="Des Blocs & Moi"
         subtitle="Espace réservé aux équipes du bloc opératoire."
       />
       <div className="flex flex-1 items-center justify-center px-4 py-10">
@@ -61,7 +61,7 @@ function PendingApproval() {
     <main className="flex min-h-screen flex-col">
       <ModuleBanner
         icon="bi-hourglass-split"
-        title="Des Blocs &amp; Moi"
+        title="Des Blocs & Moi"
         subtitle="Votre accès est en cours de validation."
       />
       <div className="flex flex-1 items-center justify-center px-4 py-10">
