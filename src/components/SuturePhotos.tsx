@@ -48,6 +48,7 @@ export function SuturePhotos({ suture, isAdmin }: Props) {
   const { data: images = [], isLoading } = useQuery({
     queryKey: ["suture-images", suture.id],
     queryFn: () => fetchSutureImages(suture.id),
+    retry: false,
   });
   const { data: urls } = useSutureImageUrls(images.map((i) => i.storage_path));
 

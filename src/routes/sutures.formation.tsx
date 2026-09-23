@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { CardSkeleton, ErrorState } from "@/components/DataStates";
+import { CardSkeleton } from "@/components/DataStates";
 import { FAMILY_LABELS, fetchProtocoles, fetchSutures } from "@/lib/sutures-api";
 import {
   ETAPES,
@@ -30,10 +30,14 @@ export const Route = createFileRoute("/sutures/formation")({
 });
 
 function EtapeSection({ titre, blocs }: { titre: string; blocs: FormationBloc[] }) {
-  if (blocs.length === 0) return null;
   return (
     <section className="module-card space-y-4 p-5">
       <h2 className="font-semibold uppercase text-module-text">{titre}</h2>
+      {blocs.length === 0 ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          Contenu en cours de rédaction.
+        </p>
+      ) : null}
       {blocs.map((bloc) => (
         <div key={bloc.id}>
           <h3 className="mb-1.5 text-sm font-semibold">{bloc.titre}</h3>
@@ -165,7 +169,7 @@ function Formation() {
   );
 
   const loading = sutures.isLoading || protocoles.isLoading || blocs.isLoading;
-  const error = sutures.error ?? protocoles.error ?? blocs.error;
+  const quizIndisponible = Boolean(sutures.error ?? protocoles.error);
   const rows = sutures.data ?? [];
 
   return (
@@ -224,10 +228,12 @@ function Formation() {
           </p>
         </div>
         {loading ? <CardSkeleton count={1} /> : null}
-        {error ? (
-          <ErrorState message={(error as Error).message} onRetry={() => setSeed((s) => s + 1)} />
+        {quizIndisponible ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            Exercices indisponibles pour le moment.
+          </p>
         ) : null}
-        {!loading && !error ? (
+        {!loading && !quizIndisponible ? (
           <Quiz key={seed} questions={questions} onRestart={() => setSeed((s) => s + 1)} />
         ) : null}
       </section>
