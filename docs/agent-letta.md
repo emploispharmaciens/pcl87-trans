@@ -12,12 +12,31 @@ L'appli expose une seule adresse pour les agents :
 La clé se crée et se désactive en SQL (voir la migration `20260923160000_agent_letta.sql`).
 La base n'en garde qu'une empreinte.
 
+## Niveaux de clé
+
+Chaque clé a un niveau, rangé dans la colonne `niveau` de la table des clés (migration `20260923210000_agent_niveaux.sql`).
+
+- `completer` (niveau par défaut) : toutes les actions de la liste « Actions » ci-dessous. L'agent crée ou remplit des cases vides. Il ne corrige rien et ne supprime rien. C'est le niveau de Letta.
+- `corriger` : tout ce que fait `completer`, plus deux actions : `corriger_fil` et `supprimer_photo`. C'est le niveau de Claude-photos.
+
+Une clé `completer` qui appelle `corriger_fil` ou `supprimer_photo` reçoit l'erreur « Action réservée aux clés de niveau corriger ».
+
+Changer le niveau d'une clé :
+
+```sql
+update public.agent_cles set niveau = 'corriger' where nom = '<nom>';
+```
+
+Revenir au niveau par défaut : même requête avec `'completer'`.
+
 ## Règles imposées par l'appli
 
 - L'agent ne remplit que des cases vides. Une case déjà remplie est refusée.
 - L'agent ne modifie jamais la marque, le calibre, la famille ni le statut d'un fil.
 - L'agent ne supprime rien, et ne modifie jamais un élément existant : il crée, ou il remplit des cases vides.
 - Convention de nommage : `docs/convention-nommage-fils.md`.
+- Exception, niveau `corriger` seulement : `corriger_fil` remplace une case déjà remplie et `supprimer_photo` retire une photo, toujours avec un motif.
+- Aucun niveau ne modifie la marque, le calibre, la famille, le statut ni le slug d'un fil, et aucun ne supprime un fil.
 - Chaque écriture est inscrite dans le journal des agents, avec l'avant et l'après.
 
 ## Actions
@@ -55,6 +74,22 @@ Tout ce que Letta crée porte l'étiquette « à valider », visible tout de sui
 - `completer_formation` :
   - remplir un bloc vide : `{ "bloc_id": "...", "points": ["...", "..."] }`
   - ajouter un bloc : `{ "etape": "motivation" | "explication" | "methode", "titre": "...", "points": ["..."] }`
+
+## Actions réservées au niveau `corriger`
+
+- `corriger_fil` : `{ "id": "...", "champs": { "couleur": "..." }, "motif": "pourquoi cette correction" }`.
+  - Remplace la valeur même si la case est déjà remplie.
+  - Mêmes champs autorisés que `completer_fil`. Tout autre champ est refusé : « Champ protégé ».
+  - Une valeur vide est refusée : une correction ne sert pas à vider une case.
+  - `motif` est obligatoire, de 5 à 500 caractères.
+  - Journal : une ligne par champ, avec l'ancienne valeur et la nouvelle suivie de « — motif : … ».
+  - Réponse : `{ "corriges": [...], "refuses": [...] }`.
+- `supprimer_photo` : `{ "photo_id": "...", "motif": "pourquoi cette suppression" }`.
+  - Ne supprime qu'une photo de fil. Sinon : « Photo introuvable ».
+  - Le journal est écrit avant la suppression (fil, position, fichier, source, motif).
+  - Les positions des autres photos ne changent pas.
+  - Si le fichier ne peut pas être effacé du stockage, la photo disparaît quand même et la réponse contient un `avertissement`.
+  - Réponse : `{ "photo_id": "...", "statut": "photo supprimée" }`.
 
 ## Outil à créer dans Letta
 

@@ -1,12 +1,15 @@
 /**
  * Accès des agents (Letta) au module Sutures.
- * Règle actuelle : un agent ne remplit que des cases vides, et ne supprime rien.
+ * Deux niveaux de clé :
+ * - « completer » (par défaut) : crée ou remplit des cases vides, ne corrige ni ne supprime rien ;
+ * - « corriger » : tout ce que fait « completer », plus corriger_fil et supprimer_photo.
  * Chaque écriture est inscrite dans le journal des agents.
  */
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import {
   MAX_SUTURE_PHOTOS,
+  SUTURE_BUCKET,
   SUTURE_CONTENT_TYPE,
   downloadImage,
   storeSutureImage,
@@ -31,6 +34,15 @@ const PLANS_AUTORISES = ["os", "tendon_ligament", "profond", "sous_cutane", "pea
 type Champ = (typeof CHAMPS_COMPLETABLES)[number];
 
 const ETAPES = ["motivation", "explication", "methode"] as const;
+
+export const NIVEAUX = ["completer", "corriger"] as const;
+export type NiveauAgent = (typeof NIVEAUX)[number];
+
+/** Agent authentifié : son nom (écrit dans le journal) et le niveau de sa clé. */
+export type Agent = { nom: string; niveau: NiveauAgent };
+
+/** Actions réservées aux clés de niveau « corriger ». */
+const ACTIONS_CORRIGER = ["corriger_fil", "supprimer_photo"];
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -83,18 +95,19 @@ function estVide(value: unknown): boolean {
 }
 
 /** Vérifie la clé envoyée par l'agent. Renvoie le nom de l'agent, ou null. */
-export async function authentifierAgent(cle: string): Promise<string | null> {
+export async function authentifierAgent(cle: string): Promise<Agent | null> {
   if (!cle || cle.length < 32) return null;
   const hash = createHash("sha256").update(cle, "utf8").digest("hex");
   const db = await admin();
   const { data } = await db
     .from("agent_cles")
-    .select("id, nom, actif")
+    .select("id, nom, actif, niveau")
     .eq("cle_hash", hash)
     .maybeSingle();
   if (!data || !data.actif) return null;
   await db.from("agent_cles").update({ last_used_at: new Date().toISOString() }).eq("id", data.id);
-  return data.nom;
+  const niveau: NiveauAgent = data.niveau === "corriger" ? "corriger" : "completer";
+  return { nom: data.nom, niveau };
 }
 
 async function journaliser(
@@ -160,6 +173,30 @@ const AIDE = {
   },
 };
 
+/** Mode d'emploi d'une clé « corriger » : mêmes règles, avec les deux droits en plus. */
+const AIDE_CORRIGER = {
+  regles: [
+    ...AIDE.regles
+      .filter((r) => r !== "Tu ne peux rien supprimer.")
+      .map((r) =>
+        r.endsWith("Tu ne modifies ni ne supprimes jamais un élément existant.")
+          ? r.replace(
+              "Tu ne modifies ni ne supprimes jamais un élément existant.",
+              "En dehors de corriger_fil et supprimer_photo, tu ne modifies ni ne supprimes jamais un élément existant.",
+            )
+          : r,
+      ),
+    "Tu peux corriger une case remplie, avec un motif.",
+    "Tu peux supprimer une photo, avec un motif.",
+  ],
+  actions: {
+    ...AIDE.actions,
+    corriger_fil: `Remplace la valeur d'une ou plusieurs cases d'un fil, même déjà remplies. Paramètres : id, champs (objet), motif (texte obligatoire, 5 à 500 caractères). Champs autorisés : ${CHAMPS_COMPLETABLES.join(", ")}. Une correction ne sert pas à vider une case.`,
+    supprimer_photo:
+      "Supprime une photo d'un fil. Paramètres : photo_id, motif (texte obligatoire, 5 à 500 caractères). Les positions des autres photos ne changent pas.",
+  },
+};
+
 const schemas = {
   lire_fil: z
     .object({ id: z.string().uuid().optional(), slug: z.string().min(1).optional() })
@@ -222,6 +259,15 @@ const schemas = {
     chirurgien_id: z.string().uuid(),
     source: z.string().min(3).max(1000),
     note: z.string().max(1000).optional(),
+  }),
+  corriger_fil: z.object({
+    id: z.string().uuid(),
+    champs: z.record(z.string(), z.union([z.string().max(20000), z.array(z.string()).max(10)])),
+    motif: z.string().trim().min(5).max(500),
+  }),
+  supprimer_photo: z.object({
+    photo_id: z.string().uuid(),
+    motif: z.string().trim().min(5).max(500),
   }),
   completer_formation: z.union([
     z.object({
@@ -370,6 +416,115 @@ async function ajouterPhoto(agent: string, params: z.infer<typeof schemas.ajoute
     apres: `${params.source.trim()} — ${params.url}`,
   });
   return { photo_id: row.id, position: row.position };
+}
+
+function enTexte(value: unknown): string | null {
+  if (value === null || value === undefined) return null;
+  if (Array.isArray(value)) return value.join(", ") || null;
+  return String(value);
+}
+
+async function corrigerFil(agent: string, params: z.infer<typeof schemas.corriger_fil>) {
+  const db = await admin();
+  const { data: fil } = await db.from("sutures").select("*").eq("id", params.id).maybeSingle();
+  if (!fil) throw new Error("Fil introuvable");
+  const row = fil as unknown as Record<string, unknown>;
+  const motif = params.motif.trim();
+
+  const corriges: string[] = [];
+  const refuses: { champ: string; raison: string }[] = [];
+  const update: Partial<Record<Exclude<Champ, "plans">, string>> & { plans?: string[] } = {};
+
+  for (const [champ, brut] of Object.entries(params.champs)) {
+    if (!(CHAMPS_COMPLETABLES as readonly string[]).includes(champ)) {
+      refuses.push({ champ, raison: "Champ protégé" });
+      continue;
+    }
+    if (champ === "plans") {
+      const plans = (Array.isArray(brut) ? brut : [brut]).map((p) => p.trim()).filter(Boolean);
+      const inconnus = plans.filter((p) => !PLANS_AUTORISES.includes(p));
+      if (plans.length === 0) {
+        refuses.push({
+          champ,
+          raison: "Valeur vide : une correction ne sert pas à vider une case",
+        });
+      } else if (inconnus.length > 0) {
+        refuses.push({
+          champ,
+          raison: `Plan inconnu : ${inconnus.join(", ")}. Valeurs possibles : ${PLANS_AUTORISES.join(", ")}`,
+        });
+      } else {
+        update.plans = [...new Set(plans)];
+        corriges.push(champ);
+      }
+      continue;
+    }
+    if (Array.isArray(brut)) {
+      refuses.push({ champ, raison: "Ce champ attend un texte, pas une liste" });
+      continue;
+    }
+    const valeur = brut.trim();
+    if (valeur === "") {
+      refuses.push({ champ, raison: "Valeur vide : une correction ne sert pas à vider une case" });
+    } else {
+      update[champ as Exclude<Champ, "plans">] = valeur;
+      corriges.push(champ);
+    }
+  }
+
+  if (corriges.length > 0) {
+    const { error } = await db.from("sutures").update(update).eq("id", params.id);
+    if (error) throw new Error(error.message);
+    for (const champ of corriges) {
+      await journaliser(agent, {
+        action: "corriger_fil",
+        table_cible: "sutures",
+        ligne_id: params.id,
+        champ,
+        avant: enTexte(row[champ]),
+        apres: `${[update[champ as Champ] ?? ""].flat().join(", ")} — motif : ${motif}`,
+      });
+    }
+  }
+  return { corriges, refuses };
+}
+
+async function supprimerPhoto(agent: string, params: z.infer<typeof schemas.supprimer_photo>) {
+  const db = await admin();
+  const motif = params.motif.trim();
+  const { data: photo } = await db
+    .from("content_images")
+    .select("id, content_type_code, content_id, position, storage_path, source")
+    .eq("id", params.photo_id)
+    .maybeSingle();
+  if (!photo || photo.content_type_code !== SUTURE_CONTENT_TYPE) {
+    throw new Error("Photo introuvable");
+  }
+
+  // Journal d'abord : la trace existe même si la suppression échoue ensuite.
+  await journaliser(agent, {
+    action: "supprimer_photo",
+    table_cible: "content_images",
+    ligne_id: photo.id,
+    champ: "photo",
+    avant: `fil ${photo.content_id} — position ${photo.position} — ${photo.storage_path} — source : ${photo.source ?? "non renseignée"}`,
+    apres: `supprimée — motif : ${motif}`,
+  });
+
+  const { error } = await db.from("content_images").delete().eq("id", photo.id);
+  if (error) throw new Error(`Suppression impossible : ${error.message}`);
+
+  const { error: storageError } = await db.storage.from(SUTURE_BUCKET).remove([photo.storage_path]);
+
+  return {
+    photo_id: photo.id,
+    statut: "photo supprimée",
+    ...(storageError
+      ? {
+          avertissement: `La photo n'apparaît plus, mais le fichier n'a pas pu être effacé du stockage : ${storageError.message}`,
+        }
+      : {}),
+  };
 }
 
 async function lireFormation() {
@@ -776,10 +931,17 @@ async function lierChirurgien(agent: string, params: z.infer<typeof schemas.lier
 }
 
 /** Exécute une action demandée par un agent authentifié. */
-export async function executerAction(agent: string, action: string, params: unknown) {
+export async function executerAction(
+  { nom: agent, niveau }: Agent,
+  action: string,
+  params: unknown,
+) {
+  if (ACTIONS_CORRIGER.includes(action) && niveau !== "corriger") {
+    throw new Error("Action réservée aux clés de niveau corriger");
+  }
   switch (action) {
     case "aide":
-      return AIDE;
+      return niveau === "corriger" ? AIDE_CORRIGER : AIDE;
     case "lister_fils":
       return listerFils();
     case "lire_fil":
@@ -810,6 +972,10 @@ export async function executerAction(agent: string, action: string, params: unkn
       return creerChirurgien(agent, schemas.creer_chirurgien.parse(params ?? {}));
     case "lier_chirurgien":
       return lierChirurgien(agent, schemas.lier_chirurgien.parse(params ?? {}));
+    case "corriger_fil":
+      return corrigerFil(agent, schemas.corriger_fil.parse(params ?? {}));
+    case "supprimer_photo":
+      return supprimerPhoto(agent, schemas.supprimer_photo.parse(params ?? {}));
     case "lire_formation":
       return lireFormation();
     case "completer_formation":

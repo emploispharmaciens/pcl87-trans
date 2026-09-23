@@ -99,6 +99,7 @@ export type Database = {
           created_at: string;
           id: string;
           last_used_at: string | null;
+          niveau: string;
           nom: string;
         };
         Insert: {
@@ -107,6 +108,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           last_used_at?: string | null;
+          niveau?: string;
           nom: string;
         };
         Update: {
@@ -115,6 +117,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           last_used_at?: string | null;
+          niveau?: string;
           nom?: string;
         };
         Relationships: [];
