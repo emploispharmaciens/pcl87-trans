@@ -15,6 +15,7 @@ import { Route as InviteRouteImport } from './routes/invite'
 import { Route as PharmacieRouteImport } from './routes/pharmacie'
 import { Route as PortailRouteImport } from './routes/portail'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SuturesRouteImport } from './routes/sutures'
 import { Route as TransmissionsRouteImport } from './routes/transmissions'
 import { Route as ModulesSlugRouteImport } from './routes/modules.$slug'
 import { Route as PharmacieIndexRouteImport } from './routes/pharmacie.index'
@@ -53,6 +54,11 @@ const PortailRoute = PortailRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuturesRoute = SuturesRouteImport.update({
+  id: '/sutures',
+  path: '/sutures',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransmissionsRoute = TransmissionsRouteImport.update({
@@ -109,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/pharmacie': typeof PharmacieRouteWithChildren
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
+  '/sutures': typeof SuturesRoute
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
@@ -125,6 +132,7 @@ export interface FileRoutesByTo {
   '/invite': typeof InviteRoute
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
+  '/sutures': typeof SuturesRoute
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/pharmacie': typeof PharmacieRouteWithChildren
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
+  '/sutures': typeof SuturesRoute
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/pharmacie'
     | '/portail'
     | '/profile'
+    | '/sutures'
     | '/transmissions'
     | '/modules/$slug'
     | '/pharmacie/checklist'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/invite'
     | '/portail'
     | '/profile'
+    | '/sutures'
     | '/transmissions'
     | '/modules/$slug'
     | '/pharmacie/checklist'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/pharmacie'
     | '/portail'
     | '/profile'
+    | '/sutures'
     | '/transmissions'
     | '/modules/$slug'
     | '/pharmacie/checklist'
@@ -213,6 +225,7 @@ export interface RootRouteChildren {
   PharmacieRoute: typeof PharmacieRouteWithChildren
   PortailRoute: typeof PortailRoute
   ProfileRoute: typeof ProfileRoute
+  SuturesRoute: typeof SuturesRoute
   TransmissionsRoute: typeof TransmissionsRoute
   ModulesSlugRoute: typeof ModulesSlugRoute
   ApiPublicPharmaFichesCronRoute: typeof ApiPublicPharmaFichesCronRoute
@@ -260,6 +273,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sutures': {
+      id: '/sutures'
+      path: '/sutures'
+      fullPath: '/sutures'
+      preLoaderRoute: typeof SuturesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transmissions': {
@@ -357,6 +377,7 @@ const rootRouteChildren: RootRouteChildren = {
   PharmacieRoute: PharmacieRouteWithChildren,
   PortailRoute: PortailRoute,
   ProfileRoute: ProfileRoute,
+  SuturesRoute: SuturesRoute,
   TransmissionsRoute: TransmissionsRoute,
   ModulesSlugRoute: ModulesSlugRoute,
   ApiPublicPharmaFichesCronRoute: ApiPublicPharmaFichesCronRoute,
