@@ -1,15 +1,5 @@
 import type { ProtocoleWithFils, SutureWithUsage } from "@/lib/sutures-api";
 
-/**
- * Statut éditorial de la formation.
- * « brouillon » : visible des seuls admins, avec un bandeau d'avertissement.
- * Passer à « valide » après relecture par un référent du bloc.
- */
-export const FORMATION_STATUT: "brouillon" | "valide" = "brouillon";
-
-export const FORMATION_BANDEAU =
-  "Brouillon rédigé avec une IA, à relire et valider par un référent du bloc avant diffusion. Les durées de résorption et les indications exactes sont celles de la notice du fabricant.";
-
 /* ------------------------------------------------------------------ */
 /* Contenu fixe                                                         */
 /* ------------------------------------------------------------------ */

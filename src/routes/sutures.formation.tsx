@@ -2,14 +2,11 @@ import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
-import { useAuth } from "@/hooks/useAuth";
+import { CardSkeleton, ErrorState } from "@/components/DataStates";
 import { FAMILY_LABELS, fetchProtocoles, fetchSutures } from "@/lib/sutures-api";
 import {
   EXPLICATION,
   FAB_FAMILLES,
-  FORMATION_BANDEAU,
-  FORMATION_STATUT,
   MOTIVATION,
   RECETTE,
   buildQuiz,
@@ -36,15 +33,7 @@ export const Route = createFileRoute("/sutures/formation")({
 function EtapeSection({ etape }: { etape: Etape }) {
   return (
     <section className="module-card space-y-4 p-5">
-      <header className="flex items-center gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-module-strong text-sm font-bold text-primary-foreground">
-          {etape.lettre === "E2" ? "E" : etape.lettre}
-        </span>
-        <div>
-          <h2 className="font-semibold uppercase text-module-text">{etape.nom}</h2>
-          <p className="text-sm text-muted-foreground">{etape.accroche}</p>
-        </div>
-      </header>
+      <h2 className="font-semibold uppercase text-module-text">{etape.accroche}</h2>
       {etape.blocs.map((bloc) => (
         <div key={bloc.titre}>
           <h3 className="mb-1.5 text-sm font-semibold">{bloc.titre}</h3>
@@ -88,7 +77,7 @@ function Quiz({ questions, onRestart }: { questions: Question[]; onRestart: () =
         <p className="text-sm text-muted-foreground">
           {score === questions.length
             ? "Sans faute. Tu sais lire un fil."
-            : "Relis les parties « Explication » et « Recette », puis recommence."}
+            : "Relis les critères et la méthode, puis recommence."}
         </p>
         <Button
           onClick={() => {
@@ -158,15 +147,12 @@ function Quiz({ questions, onRestart }: { questions: Question[]; onRestart: () =
 }
 
 function Formation() {
-  const { isAdmin } = useAuth();
-  const visible = FORMATION_STATUT === "valide" || isAdmin;
   const [seed, setSeed] = useState(0);
 
-  const sutures = useQuery({ queryKey: ["sutures"], queryFn: fetchSutures, enabled: visible });
+  const sutures = useQuery({ queryKey: ["sutures"], queryFn: fetchSutures });
   const protocoles = useQuery({
     queryKey: ["suture-protocoles"],
     queryFn: fetchProtocoles,
-    enabled: visible,
   });
 
   const questions = useMemo(
@@ -176,31 +162,12 @@ function Formation() {
     [sutures.data, protocoles.data, seed],
   );
 
-  if (!visible) {
-    return (
-      <main className="mx-auto max-w-4xl px-4 py-6">
-        <EmptyState
-          icon="bi-mortarboard"
-          title="Formation en préparation"
-          hint="Le contenu est en cours de relecture par l'équipe."
-        />
-      </main>
-    );
-  }
-
   const loading = sutures.isLoading || protocoles.isLoading;
   const error = sutures.error ?? protocoles.error;
   const rows = sutures.data ?? [];
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      {FORMATION_STATUT === "brouillon" ? (
-        <p className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-          <i className="bi bi-pencil-square mt-0.5 shrink-0" aria-hidden="true" />
-          <span>{FORMATION_BANDEAU}</span>
-        </p>
-      ) : null}
-
       <EtapeSection etape={MOTIVATION} />
       <EtapeSection etape={EXPLICATION} />
 
@@ -245,17 +212,12 @@ function Formation() {
       <EtapeSection etape={RECETTE} />
 
       <section className="module-card space-y-4 p-5">
-        <header className="flex items-center gap-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-module-strong text-sm font-bold text-primary-foreground">
-            E
-          </span>
-          <div>
-            <h2 className="font-semibold uppercase text-module-text">Exercice</h2>
-            <p className="text-sm text-muted-foreground">
-              Dix questions tirées des fils et des interventions du bloc.
-            </p>
-          </div>
-        </header>
+        <div>
+          <h2 className="font-semibold uppercase text-module-text">Teste-toi</h2>
+          <p className="text-sm text-muted-foreground">
+            Dix questions tirées des fils et des interventions du bloc.
+          </p>
+        </div>
         {loading ? <CardSkeleton count={1} /> : null}
         {error ? (
           <ErrorState message={(error as Error).message} onRetry={() => setSeed((s) => s + 1)} />

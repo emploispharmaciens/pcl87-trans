@@ -44,8 +44,6 @@ export const FAMILY_SHORT: Record<string, string> = {
 };
 
 /** Avertissement à afficher en tête du module. */
-export const SUTURE_DISCLAIMER =
-  "Données relevées sur UN bloc, pour UN chirurgien (Dr LOUISIA). Vérifiez toujours les habitudes de VOTRE chirurgien.";
 
 export type SutureUsage = {
   protocole: Protocole;

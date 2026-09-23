@@ -2,9 +2,6 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AuthGate } from "@/components/AuthGate";
 import { AppHeader } from "@/components/AppHeader";
 import { ModuleBanner } from "@/components/ModuleBanner";
-import { useAuth } from "@/hooks/useAuth";
-import { SUTURE_DISCLAIMER } from "@/lib/sutures-api";
-import { FORMATION_STATUT } from "@/lib/sutures-formation";
 
 export const Route = createFileRoute("/sutures")({
   component: () => (
@@ -24,8 +21,7 @@ const TABS: Tab[] = [
 const FORMATION_TAB: Tab = { to: "/sutures/formation", label: "Formation", icon: "bi-mortarboard" };
 
 function SuturesLayout() {
-  const { isAdmin } = useAuth();
-  const tabs = FORMATION_STATUT === "valide" || isAdmin ? [...TABS, FORMATION_TAB] : TABS;
+  const tabs = [...TABS, FORMATION_TAB];
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
@@ -35,13 +31,6 @@ function SuturesLayout() {
         title="Sutures"
         subtitle="Référentiel des fils de suture en chirurgie orthopédique : familles, caractéristiques et usage par intervention."
       />
-
-      <div className="border-b border-border bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-        <p className="mx-auto flex max-w-4xl items-start gap-2">
-          <i className="bi bi-exclamation-triangle mt-0.5 shrink-0" aria-hidden="true" />
-          <span>{SUTURE_DISCLAIMER}</span>
-        </p>
-      </div>
 
       <nav className="hidden border-b border-border bg-card sm:block" aria-label="Sections sutures">
         <div className="mx-auto flex max-w-4xl gap-1 px-4">

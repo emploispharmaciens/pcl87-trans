@@ -163,12 +163,6 @@ export function SuturePhotos({ suture, isAdmin }: Props) {
 
       {isAdmin ? (
         <div className="space-y-3 border-t border-border pt-4">
-          <p className="text-xs text-muted-foreground">
-            Préférez vos propres photos du sachet, recto et verso : la référence et le calibre
-            doivent être lisibles. Pour une image trouvée sur le web, vérifiez que vous avez le
-            droit de l'utiliser. {MAX_PHOTOS} photos au maximum.
-          </p>
-
           <div className="flex flex-wrap gap-2">
             <input
               ref={fileRef}
