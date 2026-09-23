@@ -26,6 +26,7 @@ import { Route as PharmacieSignalementsRouteImport } from './routes/pharmacie.si
 import { Route as SuturesIndexRouteImport } from './routes/sutures.index'
 import { Route as SuturesFormationRouteImport } from './routes/sutures.formation'
 import { Route as SuturesInterventionsRouteImport } from './routes/sutures.interventions'
+import { Route as ApiPublicAgentRouteImport } from './routes/api/public/agent'
 import { Route as ApiPublicPharmaFichesCronRouteImport } from './routes/api/public/pharma-fiches-cron'
 import { Route as PharmacieFicheSlugRouteImport } from './routes/pharmacie.fiche.$slug'
 import { Route as SuturesFilSlugRouteImport } from './routes/sutures.fil.$slug'
@@ -115,6 +116,11 @@ const SuturesInterventionsRoute = SuturesInterventionsRouteImport.update({
   path: '/interventions',
   getParentRoute: () => SuturesRoute,
 } as any)
+const ApiPublicAgentRoute = ApiPublicAgentRouteImport.update({
+  id: '/api/public/agent',
+  path: '/api/public/agent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPharmaFichesCronRoute =
   ApiPublicPharmaFichesCronRouteImport.update({
     id: '/api/public/pharma-fiches-cron',
@@ -150,6 +156,7 @@ export interface FileRoutesByFullPath {
   '/sutures/interventions': typeof SuturesInterventionsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
   '/sutures/': typeof SuturesIndexRoute
+  '/api/public/agent': typeof ApiPublicAgentRoute
   '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
   '/sutures/fil/$slug': typeof SuturesFilSlugRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/sutures/interventions': typeof SuturesInterventionsRoute
   '/pharmacie': typeof PharmacieIndexRoute
   '/sutures': typeof SuturesIndexRoute
+  '/api/public/agent': typeof ApiPublicAgentRoute
   '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
   '/sutures/fil/$slug': typeof SuturesFilSlugRoute
@@ -193,6 +201,7 @@ export interface FileRoutesById {
   '/sutures/interventions': typeof SuturesInterventionsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
   '/sutures/': typeof SuturesIndexRoute
+  '/api/public/agent': typeof ApiPublicAgentRoute
   '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
   '/sutures/fil/$slug': typeof SuturesFilSlugRoute
@@ -217,6 +226,7 @@ export interface FileRouteTypes {
     | '/sutures/interventions'
     | '/pharmacie/'
     | '/sutures/'
+    | '/api/public/agent'
     | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
     | '/sutures/fil/$slug'
@@ -237,6 +247,7 @@ export interface FileRouteTypes {
     | '/sutures/interventions'
     | '/pharmacie'
     | '/sutures'
+    | '/api/public/agent'
     | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
     | '/sutures/fil/$slug'
@@ -259,6 +270,7 @@ export interface FileRouteTypes {
     | '/sutures/interventions'
     | '/pharmacie/'
     | '/sutures/'
+    | '/api/public/agent'
     | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
     | '/sutures/fil/$slug'
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   SuturesRoute: typeof SuturesRouteWithChildren
   TransmissionsRoute: typeof TransmissionsRoute
   ModulesSlugRoute: typeof ModulesSlugRoute
+  ApiPublicAgentRoute: typeof ApiPublicAgentRoute
   ApiPublicPharmaFichesCronRoute: typeof ApiPublicPharmaFichesCronRoute
 }
 
@@ -398,6 +411,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuturesInterventionsRouteImport
       parentRoute: typeof SuturesRoute
     }
+    '/api/public/agent': {
+      id: '/api/public/agent'
+      path: '/api/public/agent'
+      fullPath: '/api/public/agent'
+      preLoaderRoute: typeof ApiPublicAgentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pharma-fiches-cron': {
       id: '/api/public/pharma-fiches-cron'
       path: '/api/public/pharma-fiches-cron'
@@ -471,6 +491,7 @@ const rootRouteChildren: RootRouteChildren = {
   SuturesRoute: SuturesRouteWithChildren,
   TransmissionsRoute: TransmissionsRoute,
   ModulesSlugRoute: ModulesSlugRoute,
+  ApiPublicAgentRoute: ApiPublicAgentRoute,
   ApiPublicPharmaFichesCronRoute: ApiPublicPharmaFichesCronRoute,
 }
 export const routeTree = rootRouteImport

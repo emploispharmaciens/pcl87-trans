@@ -1,97 +1,36 @@
+import { supabase } from "@/integrations/supabase/client";
 import type { ProtocoleWithFils, SutureWithUsage } from "@/lib/sutures-api";
 
 /* ------------------------------------------------------------------ */
-/* Contenu fixe                                                         */
+/* Contenu de la formation (rangé en base, table formation_blocs)       */
 /* ------------------------------------------------------------------ */
 
-export type Bloc = { titre: string; points: string[] };
+export type Etape = "motivation" | "explication" | "methode";
 
-export type Etape = {
-  lettre: "M" | "E" | "R" | "E2";
-  nom: string;
-  accroche: string;
-  blocs: Bloc[];
+export type FormationBloc = {
+  id: string;
+  etape: Etape;
+  ordre: number;
+  titre: string;
+  points: string[];
 };
 
-export const MOTIVATION: Etape = {
-  lettre: "M",
-  nom: "Motivation",
-  accroche: "Pourquoi savoir lire un fil ?",
-  blocs: [
-    {
-      titre: "Ce qui se joue au champ",
-      points: [
-        "Un fil ouvert par erreur est un fil jeté.",
-        "Le chirurgien attend pendant qu'on cherche le bon.",
-        "Un fil trop fin ou trop gros fragilise la réparation.",
-        "« 2 » et « 2/0 » se ressemblent sur une liste, mais ce sont deux fils opposés.",
-      ],
-    },
-    {
-      titre: "Ce que tu sauras faire",
-      points: [
-        "Lire un sachet en dix secondes.",
-        "Reconnaître la famille d'un fil et savoir à quoi elle sert.",
-        "Préparer les fils d'une intervention avant qu'on te les demande.",
-      ],
-    },
-  ],
-};
+/** Titres affichés des grandes parties, dans l'ordre de lecture. */
+export const ETAPES: { etape: Etape; titre: string }[] = [
+  { etape: "motivation", titre: "Pourquoi savoir lire un fil ?" },
+  { etape: "explication", titre: "Les cinq critères qui décrivent un fil" },
+  { etape: "methode", titre: "Comment faire, étape par étape" },
+];
 
-export const EXPLICATION: Etape = {
-  lettre: "E",
-  nom: "Explication",
-  accroche: "Les cinq critères qui décrivent un fil",
-  blocs: [
-    {
-      titre: "1. Résorbable ou non résorbable",
-      points: [
-        "Résorbable : l'organisme dégrade le fil. Il n'y a rien à retirer.",
-        "Non résorbable : le fil reste en place. En surface, on le retire après cicatrisation.",
-        "La durée de résorption dépend du fil : elle est indiquée par le fabricant.",
-      ],
-    },
-    {
-      titre: "2. Monobrin ou tressé",
-      points: [
-        "Monobrin : un seul brin lisse. Il glisse bien dans les tissus.",
-        "Tressé : plusieurs brins entrelacés. Il est souple et le nœud tient bien.",
-        "Un monobrin a de la « mémoire » : il garde sa forme d'emballage et demande plus de nœuds.",
-      ],
-    },
-    {
-      titre: "3. Le calibre",
-      points: [
-        "Le calibre, c'est l'épaisseur du fil.",
-        "« 0 » est le point de repère.",
-        "Avec « /0 », plus le chiffre monte, plus le fil est fin : 4/0 est plus fin que 2/0.",
-        "Sans « /0 », plus le chiffre monte, plus le fil est gros : 2 est plus gros que 1.",
-        "Piège : « 2 » est un gros fil, « 2/0 » est un fil fin.",
-        "Le sachet porte aussi un chiffre métrique. Ne le confonds pas avec le calibre.",
-      ],
-    },
-    {
-      titre: "4. L'aiguille",
-      points: [
-        "La courbure s'écrit en fraction de cercle : 3/8, 1/2. Certaines aiguilles sont droites.",
-        "La longueur s'écrit en millimètres : 16 mm, 26 mm, 48 mm…",
-        "Une pointe ronde écarte les tissus sans les couper.",
-        "Une pointe tranchante coupe : elle sert pour les tissus résistants.",
-        "« TAPER » désigne une pointe ronde.",
-        "Les autres abréviations (TR, RDE, RPA…) varient selon le fabricant : lis la légende de la boîte.",
-      ],
-    },
-    {
-      titre: "5. Les familles particulières",
-      points: [
-        "Haute résistance : fils ou rubans très solides, pour réinsérer un tendon ou un ligament.",
-        "Fil cranté : de petites dents le bloquent dans les tissus, sans nœud.",
-        "Résorption rapide : pour les sutures qui doivent disparaître vite.",
-        "Agrafes cutanées : deux modèles d'agrafeuse ne sont pas interchangeables.",
-      ],
-    },
-  ],
-};
+export async function fetchFormationBlocs(): Promise<FormationBloc[]> {
+  const { data, error } = await supabase
+    .from("formation_blocs")
+    .select("id, etape, ordre, titre, points")
+    .eq("module", "sutures")
+    .order("ordre");
+  if (error) throw error;
+  return (data ?? []) as FormationBloc[];
+}
 
 export type FicheFab = {
   famille: string;
@@ -133,49 +72,6 @@ export const FAB_FAMILLES: FicheFab[] = [
     b: "Il sert à réinsérer un tendon ou un ligament.",
   },
 ];
-
-export const RECETTE: Etape = {
-  lettre: "R",
-  nom: "Recette",
-  accroche: "Comment faire, étape par étape",
-  blocs: [
-    {
-      titre: "Lire un sachet en dix secondes",
-      points: [
-        "1. La marque et la matière.",
-        "2. Le calibre : cherche « /0 » ou son absence.",
-        "3. L'aiguille : courbure, longueur, pointe.",
-        "4. La longueur du fil.",
-        "5. La référence, la date de péremption et l'état de l'emballage.",
-      ],
-    },
-    {
-      titre: "Avant d'ouvrir",
-      points: [
-        "Vérifie la demande : fil, calibre et aiguille.",
-        "Annonce le fil à voix haute avant de l'ouvrir.",
-        "Contrôle la date de péremption et l'intégrité de l'emballage.",
-        "Ouvre en respectant l'asepsie.",
-      ],
-    },
-    {
-      titre: "Pendant et après",
-      points: [
-        "Compte les aiguilles sorties, comme les compresses.",
-        "Récupère chaque aiguille rendue par le chirurgien.",
-        "Élimine les aiguilles dans le collecteur prévu.",
-      ],
-    },
-    {
-      titre: "Anticiper",
-      points: [
-        "Ouvre l'onglet « Interventions » la veille ou avant l'installation.",
-        "Prépare les fils listés pour l'intervention du jour.",
-        "Garde les quantités indiquées : elles viennent des habitudes du bloc.",
-      ],
-    },
-  ],
-};
 
 /* ------------------------------------------------------------------ */
 /* Calibres                                                             */

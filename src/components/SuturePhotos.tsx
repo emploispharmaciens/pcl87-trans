@@ -25,6 +25,14 @@ const MAX_PHOTOS = 6;
 
 type Props = { suture: Suture; isAdmin: boolean };
 
+function hostname(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
 export function SuturePhotos({ suture, isAdmin }: Props) {
   const queryClient = useQueryClient();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -132,6 +140,20 @@ export function SuturePhotos({ suture, isAdmin }: Props) {
                     </span>
                   ) : null}
                 </button>
+                {image.source?.startsWith("http") ? (
+                  <a
+                    href={image.source}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block truncate text-[11px] text-muted-foreground hover:underline"
+                  >
+                    Source : {hostname(image.source)}
+                  </a>
+                ) : image.source && image.source !== "Photo ajoutée par un admin" ? (
+                  <p className="truncate text-[11px] text-muted-foreground">
+                    Source : {image.source}
+                  </p>
+                ) : null}
                 {isAdmin ? (
                   <figcaption className="flex flex-wrap gap-2 text-xs">
                     {index > 0 ? (

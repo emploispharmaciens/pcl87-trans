@@ -247,13 +247,14 @@ export type SutureImage = {
   content_id: string;
   storage_path: string;
   position: number;
+  source: string | null;
 };
 
 /** Photos d'un fil, ou de tous les fils si aucun identifiant n'est donné. */
 export async function fetchSutureImages(sutureId?: string): Promise<SutureImage[]> {
   let query = supabase
     .from("content_images")
-    .select("id, content_id, storage_path, position")
+    .select("id, content_id, storage_path, position, source")
     .eq("content_type_code", SUTURE_IMAGE_TYPE)
     .order("position");
   if (sutureId) query = query.eq("content_id", sutureId);

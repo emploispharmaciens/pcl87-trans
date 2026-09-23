@@ -3,56 +3,19 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { isAdmin, isApproved } from "@/lib/authz.server";
 
-const BUCKET = "sutures";
-const CONTENT_TYPE = "sutures";
-const MAX_PHOTOS = 6;
-const MAX_BYTES = 5 * 1024 * 1024;
-const SIGNED_URL_TTL = 900; // 15 minutes
+import {
+  IMAGE_TYPES,
+  SUTURE_BUCKET as BUCKET,
+  SUTURE_CONTENT_TYPE as CONTENT_TYPE,
+  downloadImage,
+  storeSutureImage,
+} from "@/lib/suture-images.server";
 
-const IMAGE_TYPES = /^image\/(jpeg|jpg|png|webp|gif)$/;
+const SIGNED_URL_TTL = 900; // 15 minutes
 
 async function requireAdmin(context: { supabase: Parameters<typeof isAdmin>[0]; userId: string }) {
   const allowed = await isAdmin(context.supabase, context.userId);
   if (!allowed) throw new Error("Action réservée aux administrateurs");
-}
-
-async function storeImage(sutureId: string, bytes: Uint8Array, contentType: string, ext: string) {
-  if (bytes.byteLength > MAX_BYTES) throw new Error("Image trop lourde (5 Mo max)");
-
-  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-
-  const { data: suture } = await supabaseAdmin
-    .from("sutures")
-    .select("id")
-    .eq("id", sutureId)
-    .maybeSingle();
-  if (!suture) throw new Error("Fil introuvable");
-
-  const { data: existing } = await supabaseAdmin
-    .from("content_images")
-    .select("position")
-    .eq("content_type_code", CONTENT_TYPE)
-    .eq("content_id", sutureId);
-  const count = existing?.length ?? 0;
-  if (count >= MAX_PHOTOS) throw new Error(`${MAX_PHOTOS} photos au maximum par fil`);
-  const position = Math.max(0, ...(existing ?? []).map((r) => r.position)) + 1;
-
-  const path = `${sutureId}/${crypto.randomUUID()}.${ext}`;
-  const { error: uploadError } = await supabaseAdmin.storage
-    .from(BUCKET)
-    .upload(path, bytes, { contentType, upsert: false });
-  if (uploadError) throw new Error(`Envoi impossible : ${uploadError.message}`);
-
-  const { data: row, error: insertError } = await supabaseAdmin
-    .from("content_images")
-    .insert({ content_type_code: CONTENT_TYPE, content_id: sutureId, storage_path: path, position })
-    .select("id, storage_path, position")
-    .single();
-  if (insertError) {
-    await supabaseAdmin.storage.from(BUCKET).remove([path]);
-    throw new Error(`Enregistrement impossible : ${insertError.message}`);
-  }
-  return row;
 }
 
 /** Ajoute une photo prise ou choisie sur l'appareil. */
@@ -71,7 +34,13 @@ export const uploadSutureImage = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
     const ext = (data.fileName.split(".").pop() ?? "jpg").toLowerCase().slice(0, 5);
-    return storeImage(data.sutureId, Buffer.from(data.base64, "base64"), data.contentType, ext);
+    return storeSutureImage({
+      sutureId: data.sutureId,
+      bytes: new Uint8Array(Buffer.from(data.base64, "base64")),
+      contentType: data.contentType,
+      ext,
+      source: "Photo ajoutée par un admin",
+    });
   });
 
 /** Importe une image depuis son adresse web (https uniquement). */
@@ -87,28 +56,8 @@ export const importSutureImageFromUrl = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await requireAdmin(context);
-    const target = new URL(data.url);
-    if (target.protocol !== "https:") throw new Error("Adresse en https uniquement");
-
-    const response = await fetch(target, {
-      redirect: "follow",
-      signal: AbortSignal.timeout(10000),
-      headers: { Accept: "image/*" },
-    });
-    if (!response.ok) throw new Error(`Image inaccessible (erreur ${response.status})`);
-
-    const contentType = ((response.headers.get("content-type") ?? "").split(";")[0] ?? "").trim();
-    if (!IMAGE_TYPES.test(contentType)) {
-      throw new Error(
-        "Cette adresse ne mène pas à une image. Copiez l'adresse de l'image elle-même.",
-      );
-    }
-    const declared = Number(response.headers.get("content-length") ?? "0");
-    if (declared > MAX_BYTES) throw new Error("Image trop lourde (5 Mo max)");
-
-    const bytes = new Uint8Array(await response.arrayBuffer());
-    const ext = contentType.split("/")[1]?.replace("jpeg", "jpg") ?? "jpg";
-    return storeImage(data.sutureId, bytes, contentType, ext);
+    const image = await downloadImage(data.url);
+    return storeSutureImage({ sutureId: data.sutureId, ...image, source: data.url });
   });
 
 /** Supprime une photo (fichier + référence). */

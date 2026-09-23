@@ -5,13 +5,12 @@ import { Button } from "@/components/ui/button";
 import { CardSkeleton, ErrorState } from "@/components/DataStates";
 import { FAMILY_LABELS, fetchProtocoles, fetchSutures } from "@/lib/sutures-api";
 import {
-  EXPLICATION,
+  ETAPES,
   FAB_FAMILLES,
-  MOTIVATION,
-  RECETTE,
   buildQuiz,
+  fetchFormationBlocs,
   realiteFamille,
-  type Etape,
+  type FormationBloc,
   type Question,
 } from "@/lib/sutures-formation";
 
@@ -30,12 +29,13 @@ export const Route = createFileRoute("/sutures/formation")({
   component: Formation,
 });
 
-function EtapeSection({ etape }: { etape: Etape }) {
+function EtapeSection({ titre, blocs }: { titre: string; blocs: FormationBloc[] }) {
+  if (blocs.length === 0) return null;
   return (
     <section className="module-card space-y-4 p-5">
-      <h2 className="font-semibold uppercase text-module-text">{etape.accroche}</h2>
-      {etape.blocs.map((bloc) => (
-        <div key={bloc.titre}>
+      <h2 className="font-semibold uppercase text-module-text">{titre}</h2>
+      {blocs.map((bloc) => (
+        <div key={bloc.id}>
           <h3 className="mb-1.5 text-sm font-semibold">{bloc.titre}</h3>
           <ul className="space-y-1.5 text-sm">
             {bloc.points.map((point) => (
@@ -150,6 +150,8 @@ function Formation() {
   const [seed, setSeed] = useState(0);
 
   const sutures = useQuery({ queryKey: ["sutures"], queryFn: fetchSutures });
+  const blocs = useQuery({ queryKey: ["formation-blocs"], queryFn: fetchFormationBlocs });
+  const parEtape = (etape: string) => (blocs.data ?? []).filter((b) => b.etape === etape);
   const protocoles = useQuery({
     queryKey: ["suture-protocoles"],
     queryFn: fetchProtocoles,
@@ -162,14 +164,15 @@ function Formation() {
     [sutures.data, protocoles.data, seed],
   );
 
-  const loading = sutures.isLoading || protocoles.isLoading;
-  const error = sutures.error ?? protocoles.error;
+  const loading = sutures.isLoading || protocoles.isLoading || blocs.isLoading;
+  const error = sutures.error ?? protocoles.error ?? blocs.error;
   const rows = sutures.data ?? [];
 
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6">
-      <EtapeSection etape={MOTIVATION} />
-      <EtapeSection etape={EXPLICATION} />
+      {ETAPES.slice(0, 2).map((e) => (
+        <EtapeSection key={e.etape} titre={e.titre} blocs={parEtape(e.etape)} />
+      ))}
 
       <section className="module-card space-y-4 p-5">
         <h2 className="font-semibold uppercase text-module-text">Les familles, en bref</h2>
@@ -209,7 +212,9 @@ function Formation() {
         ) : null}
       </section>
 
-      <EtapeSection etape={RECETTE} />
+      {ETAPES.slice(2).map((e) => (
+        <EtapeSection key={e.etape} titre={e.titre} blocs={parEtape(e.etape)} />
+      ))}
 
       <section className="module-card space-y-4 p-5">
         <div>

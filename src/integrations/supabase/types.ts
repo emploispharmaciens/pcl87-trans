@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_cles: {
+        Row: {
+          actif: boolean
+          cle_hash: string
+          created_at: string
+          id: string
+          last_used_at: string | null
+          nom: string
+        }
+        Insert: {
+          actif?: boolean
+          cle_hash: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          nom: string
+        }
+        Update: {
+          actif?: boolean
+          cle_hash?: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          nom?: string
+        }
+        Relationships: []
+      }
+      agent_journal: {
+        Row: {
+          action: string
+          agent: string
+          apres: string | null
+          avant: string | null
+          champ: string | null
+          created_at: string
+          id: string
+          ligne_id: string | null
+          table_cible: string
+        }
+        Insert: {
+          action: string
+          agent: string
+          apres?: string | null
+          avant?: string | null
+          champ?: string | null
+          created_at?: string
+          id?: string
+          ligne_id?: string | null
+          table_cible: string
+        }
+        Update: {
+          action?: string
+          agent?: string
+          apres?: string | null
+          avant?: string | null
+          champ?: string | null
+          created_at?: string
+          id?: string
+          ligne_id?: string | null
+          table_cible?: string
+        }
+        Relationships: []
+      }
+      formation_blocs: {
+        Row: {
+          created_at: string
+          etape: string
+          id: string
+          module: string
+          ordre: number
+          points: string[]
+          titre: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          etape: string
+          id?: string
+          module?: string
+          ordre?: number
+          points?: string[]
+          titre: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          etape?: string
+          id?: string
+          module?: string
+          ordre?: number
+          points?: string[]
+          titre?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string
@@ -56,6 +152,7 @@ export type Database = {
           created_at: string
           id: string
           position: number
+          source: string | null
           storage_path: string
         }
         Insert: {
@@ -64,6 +161,7 @@ export type Database = {
           created_at?: string
           id?: string
           position?: number
+          source?: string | null
           storage_path: string
         }
         Update: {
@@ -72,6 +170,7 @@ export type Database = {
           created_at?: string
           id?: string
           position?: number
+          source?: string | null
           storage_path?: string
         }
         Relationships: [
