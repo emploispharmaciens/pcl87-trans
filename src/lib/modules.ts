@@ -43,6 +43,15 @@ export const MODULES: ModuleDef[] = [
     path: "/pharmacie",
   },
   {
+    slug: "sutures",
+    name: "Sutures",
+    description: "Les fils du bloc : famille, calibre, aiguille et usage par intervention.",
+    icon: "bi-bezier2",
+    family: "Pratique",
+    status: "actif",
+    path: "/sutures",
+  },
+  {
     slug: "documents",
     name: "Documents",
     description: "Consulter les documents institutionnels et protocoles PDF.",

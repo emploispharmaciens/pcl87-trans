@@ -147,3 +147,93 @@ export function matchesSuture(suture: Suture, query: string): boolean {
 export function isIncomplete(suture: Suture): boolean {
   return !suture.calibre || !suture.composition || !suture.reference;
 }
+
+/* ------------------------------------------------------------------ */
+/* Gestion des fils (réservée aux admins, contrôlée aussi en base)     */
+/* ------------------------------------------------------------------ */
+
+export const STATUT_ACTIF = "actif";
+export const STATUT_RETIRE = "retire";
+
+export const STATUT_LABELS: Record<string, string> = {
+  [STATUT_ACTIF]: "En service",
+  [STATUT_RETIRE]: "Retiré du service",
+};
+
+export function isRetired(suture: Pick<Suture, "statut">): boolean {
+  return suture.statut === STATUT_RETIRE;
+}
+
+/** Champs modifiables depuis le formulaire. */
+export type SutureInput = {
+  marque: string;
+  calibre: string | null;
+  famille: string | null;
+  composition: string | null;
+  reference: string | null;
+  type_aiguille: string | null;
+  longueur: string | null;
+  couleur: string | null;
+  usage_notes: string | null;
+  note_qualite: string | null;
+  statut: string;
+};
+
+export const DB_ERROR_MESSAGE =
+  "Enregistrement refusé : vous n'avez pas les droits ou la donnée est invalide.";
+
+/** Retire les espaces en début et fin. Un champ vide devient null. */
+export function cleanField(value: string | null | undefined): string | null {
+  const trimmed = (value ?? "").trim();
+  return trimmed === "" ? null : trimmed;
+}
+
+/** Identifiant d'URL : minuscules, sans accents, mots séparés par des tirets. */
+export function slugify(value: string): string {
+  return normalize(value)
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+async function uniqueSlug(base: string): Promise<string> {
+  const root = base || "fil";
+  const { data, error } = await supabase.from("sutures").select("slug").like("slug", `${root}%`);
+  if (error) throw new Error(DB_ERROR_MESSAGE);
+  const taken = new Set((data ?? []).map((row) => row.slug));
+  if (!taken.has(root)) return root;
+  let n = 2;
+  while (taken.has(`${root}-${n}`)) n += 1;
+  return `${root}-${n}`;
+}
+
+/** Crée un fil et renvoie son identifiant d'URL. */
+export async function createSuture(input: SutureInput): Promise<string> {
+  const slug = await uniqueSlug(slugify(`${input.marque} ${input.calibre ?? ""}`));
+  const { data, error } = await supabase
+    .from("sutures")
+    .insert({ ...input, slug, source: "saisie_admin" })
+    .select("slug")
+    .single();
+  if (error || !data) throw new Error(DB_ERROR_MESSAGE);
+  return data.slug ?? slug;
+}
+
+export async function updateSuture(id: string, input: SutureInput): Promise<void> {
+  const { data, error } = await supabase.from("sutures").update(input).eq("id", id).select("id");
+  if (error || !data || data.length === 0) throw new Error(DB_ERROR_MESSAGE);
+}
+
+export async function setSutureStatut(id: string, statut: string): Promise<void> {
+  const { data, error } = await supabase
+    .from("sutures")
+    .update({ statut })
+    .eq("id", id)
+    .select("id");
+  if (error || !data || data.length === 0) throw new Error(DB_ERROR_MESSAGE);
+}
+
+/** Supprime le fil. Ses liens avec les interventions sont effacés en base (cascade). */
+export async function deleteSuture(id: string): Promise<void> {
+  const { data, error } = await supabase.from("sutures").delete().eq("id", id).select("id");
+  if (error || !data || data.length === 0) throw new Error(DB_ERROR_MESSAGE);
+}

@@ -1,16 +1,23 @@
 import { useMemo, useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
+import { SutureForm } from "@/components/SutureForm";
+import { useAuth } from "@/hooks/useAuth";
 import {
   FAMILY_LABELS,
   FAMILY_SHORT,
   SUTURE_FAMILIES,
+  createSuture,
   fetchSutures,
   isIncomplete,
+  isRetired,
   matchesSuture,
   type SutureFamily,
+  type SutureInput,
   type SutureWithUsage,
 } from "@/lib/sutures-api";
 
@@ -77,6 +84,12 @@ function SutureCard({ suture }: { suture: SutureWithUsage }) {
             {suture.longueur ? ` · ${suture.longueur}` : ""}
           </p>
         </div>
+        {isRetired(suture) ? (
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
+            <i className="bi bi-archive" aria-hidden="true" />
+            Retiré du service
+          </span>
+        ) : null}
         {suture.note_qualite ? (
           <span className="flex shrink-0 items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-semibold uppercase text-destructive">
             <i className="bi bi-exclamation-triangle" aria-hidden="true" />
@@ -123,9 +136,31 @@ function SuturesList() {
   const [onlyUsed, setOnlyUsed] = useState(false);
   const [onlyIncomplete, setOnlyIncomplete] = useState(false);
 
-  const { data: sutures, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: sutures,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["sutures"],
     queryFn: fetchSutures,
+  });
+
+  const { isAdmin } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [createOpen, setCreateOpen] = useState(false);
+
+  const createMutation = useMutation({
+    mutationFn: (input: SutureInput) => createSuture(input),
+    onSuccess: async (slug) => {
+      await queryClient.invalidateQueries({ queryKey: ["sutures"] });
+      setCreateOpen(false);
+      toast.success("Fil enregistré");
+      await navigate({ to: "/sutures/fil/$slug", params: { slug } });
+    },
+    onError: (err: Error) => toast.error(err.message),
   });
 
   const filtered = useMemo(() => {
@@ -158,6 +193,15 @@ function SuturesList() {
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-6">
+      {isAdmin ? (
+        <div className="mb-4 flex justify-end">
+          <Button onClick={() => setCreateOpen(true)}>
+            <i className="bi bi-plus-lg" aria-hidden="true" />
+            Ajouter un fil
+          </Button>
+        </div>
+      ) : null}
+
       <div className="space-y-3">
         <Input
           value={search}
@@ -221,6 +265,15 @@ function SuturesList() {
           </section>
         ))}
       </div>
+
+      {isAdmin ? (
+        <SutureForm
+          open={createOpen}
+          onOpenChange={setCreateOpen}
+          loading={createMutation.isPending}
+          onSubmit={(input) => createMutation.mutate(input)}
+        />
+      ) : null}
     </main>
   );
 }

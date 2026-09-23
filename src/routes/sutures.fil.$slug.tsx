@@ -1,7 +1,23 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
-import { FAMILY_LABELS, fetchSutures } from "@/lib/sutures-api";
+import { SutureForm } from "@/components/SutureForm";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  FAMILY_LABELS,
+  STATUT_ACTIF,
+  STATUT_RETIRE,
+  deleteSuture,
+  fetchSutures,
+  isRetired,
+  setSutureStatut,
+  updateSuture,
+  type SutureInput,
+} from "@/lib/sutures-api";
 
 export const Route = createFileRoute("/sutures/fil/$slug")({
   head: () => ({
@@ -43,12 +59,60 @@ function Row({ label, value }: { label: string; value?: string | null }) {
 
 function SutureFiche() {
   const { slug } = Route.useParams();
-  const { data: sutures, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: sutures,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["sutures"],
     queryFn: fetchSutures,
   });
 
   const suture = (sutures ?? []).find((s) => s.slug === slug);
+
+  const { isAdmin } = useAuth();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [editOpen, setEditOpen] = useState(false);
+  const [retireOpen, setRetireOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+
+  const refresh = () => queryClient.invalidateQueries({ queryKey: ["sutures"] });
+
+  const saveMutation = useMutation({
+    mutationFn: (input: SutureInput) => updateSuture(suture!.id, input),
+    onSuccess: async () => {
+      await refresh();
+      setEditOpen(false);
+      toast.success("Fil enregistré");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const statutMutation = useMutation({
+    mutationFn: (statut: string) => setSutureStatut(suture!.id, statut),
+    onSuccess: async () => {
+      await refresh();
+      setRetireOpen(false);
+      toast.success("Fil enregistré");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteSuture(suture!.id),
+    onSuccess: async () => {
+      setDeleteOpen(false);
+      await navigate({ to: "/sutures" });
+      await refresh();
+      toast.success("Fil supprimé");
+    },
+    onError: (err: Error) => toast.error(err.message),
+  });
+
+  const linkCount = suture?.usages.length ?? 0;
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-6">
@@ -81,6 +145,12 @@ function SutureFiche() {
             <p className="mt-1 text-sm text-muted-foreground">
               {FAMILY_LABELS[suture.famille ?? ""] ?? `Famille ${UNDEFINED}`}
             </p>
+            {isRetired(suture) ? (
+              <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
+                <i className="bi bi-archive" aria-hidden="true" />
+                Retiré du service
+              </span>
+            ) : null}
             {suture.note_qualite ? (
               <p className="mt-3 flex items-start gap-2 rounded-md bg-destructive/10 p-3 text-sm text-destructive">
                 <i className="bi bi-exclamation-triangle mt-0.5 shrink-0" aria-hidden="true" />
@@ -137,6 +207,42 @@ function SutureFiche() {
             )}
           </section>
 
+          {isAdmin ? (
+            <section className="module-card space-y-3 p-5" aria-label="Gestion du fil">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Gestion (admin)
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => setEditOpen(true)}>
+                  <i className="bi bi-pencil" aria-hidden="true" />
+                  Modifier
+                </Button>
+                {isRetired(suture) ? (
+                  <Button
+                    variant="outline"
+                    disabled={statutMutation.isPending}
+                    onClick={() => statutMutation.mutate(STATUT_ACTIF)}
+                  >
+                    <i className="bi bi-arrow-counterclockwise" aria-hidden="true" />
+                    Remettre en service
+                  </Button>
+                ) : (
+                  <Button variant="outline" onClick={() => setRetireOpen(true)}>
+                    <i className="bi bi-archive" aria-hidden="true" />
+                    Retirer du service
+                  </Button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteOpen(true)}
+                className="text-xs font-semibold text-destructive underline-offset-2 hover:underline"
+              >
+                Supprimer définitivement
+              </button>
+            </section>
+          ) : null}
+
           {suture.cours ? (
             <section className="module-card p-5">
               <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
@@ -146,6 +252,38 @@ function SutureFiche() {
             </section>
           ) : null}
         </article>
+      ) : null}
+
+      {suture && isAdmin ? (
+        <>
+          <SutureForm
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            suture={suture}
+            loading={saveMutation.isPending}
+            onSubmit={(input) => saveMutation.mutate(input)}
+          />
+          <ConfirmDialog
+            open={retireOpen}
+            onOpenChange={setRetireOpen}
+            title="Retirer ce fil du service ?"
+            message="Le fil reste dans le référentiel, marqué « Retiré du service ». Vous pourrez le remettre en service."
+            confirmLabel="Retirer du service"
+            tone="warning"
+            loading={statutMutation.isPending}
+            onConfirm={() => statutMutation.mutate(STATUT_RETIRE)}
+          />
+          <ConfirmDialog
+            open={deleteOpen}
+            onOpenChange={setDeleteOpen}
+            title="Supprimer définitivement ce fil ?"
+            message={`Ce fil et ses ${linkCount} lien${linkCount > 1 ? "s" : ""} avec des interventions seront effacés. Action irréversible.`}
+            confirmLabel="Supprimer définitivement"
+            tone="danger"
+            loading={deleteMutation.isPending}
+            onConfirm={() => deleteMutation.mutate()}
+          />
+        </>
       ) : null}
     </main>
   );
