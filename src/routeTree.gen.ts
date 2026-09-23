@@ -15,6 +15,7 @@ import { Route as InviteRouteImport } from './routes/invite'
 import { Route as PharmacieRouteImport } from './routes/pharmacie'
 import { Route as PortailRouteImport } from './routes/portail'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as SuturesRouteImport } from './routes/sutures'
 import { Route as TransmissionsRouteImport } from './routes/transmissions'
 import { Route as ModulesSlugRouteImport } from './routes/modules.$slug'
 import { Route as PharmacieIndexRouteImport } from './routes/pharmacie.index'
@@ -22,8 +23,11 @@ import { Route as PharmacieChecklistRouteImport } from './routes/pharmacie.check
 import { Route as PharmacieComparatifRouteImport } from './routes/pharmacie.comparatif'
 import { Route as PharmacieFichesRouteImport } from './routes/pharmacie.fiches'
 import { Route as PharmacieSignalementsRouteImport } from './routes/pharmacie.signalements'
+import { Route as SuturesIndexRouteImport } from './routes/sutures.index'
+import { Route as SuturesInterventionsRouteImport } from './routes/sutures.interventions'
 import { Route as ApiPublicPharmaFichesCronRouteImport } from './routes/api/public/pharma-fiches-cron'
 import { Route as PharmacieFicheSlugRouteImport } from './routes/pharmacie.fiche.$slug'
+import { Route as SuturesFilSlugRouteImport } from './routes/sutures.fil.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,6 +57,11 @@ const PortailRoute = PortailRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SuturesRoute = SuturesRouteImport.update({
+  id: '/sutures',
+  path: '/sutures',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransmissionsRoute = TransmissionsRouteImport.update({
@@ -90,6 +99,16 @@ const PharmacieSignalementsRoute = PharmacieSignalementsRouteImport.update({
   path: '/signalements',
   getParentRoute: () => PharmacieRoute,
 } as any)
+const SuturesIndexRoute = SuturesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SuturesRoute,
+} as any)
+const SuturesInterventionsRoute = SuturesInterventionsRouteImport.update({
+  id: '/interventions',
+  path: '/interventions',
+  getParentRoute: () => SuturesRoute,
+} as any)
 const ApiPublicPharmaFichesCronRoute =
   ApiPublicPharmaFichesCronRouteImport.update({
     id: '/api/public/pharma-fiches-cron',
@@ -101,6 +120,11 @@ const PharmacieFicheSlugRoute = PharmacieFicheSlugRouteImport.update({
   path: '/fiche/$slug',
   getParentRoute: () => PharmacieRoute,
 } as any)
+const SuturesFilSlugRoute = SuturesFilSlugRouteImport.update({
+  id: '/fil/$slug',
+  path: '/fil/$slug',
+  getParentRoute: () => SuturesRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -109,15 +133,19 @@ export interface FileRoutesByFullPath {
   '/pharmacie': typeof PharmacieRouteWithChildren
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
+  '/sutures': typeof SuturesRouteWithChildren
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
   '/pharmacie/comparatif': typeof PharmacieComparatifRoute
   '/pharmacie/fiches': typeof PharmacieFichesRoute
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
+  '/sutures/interventions': typeof SuturesInterventionsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
+  '/sutures/': typeof SuturesIndexRoute
   '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
+  '/sutures/fil/$slug': typeof SuturesFilSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -131,9 +159,12 @@ export interface FileRoutesByTo {
   '/pharmacie/comparatif': typeof PharmacieComparatifRoute
   '/pharmacie/fiches': typeof PharmacieFichesRoute
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
+  '/sutures/interventions': typeof SuturesInterventionsRoute
   '/pharmacie': typeof PharmacieIndexRoute
+  '/sutures': typeof SuturesIndexRoute
   '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
+  '/sutures/fil/$slug': typeof SuturesFilSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,15 +174,19 @@ export interface FileRoutesById {
   '/pharmacie': typeof PharmacieRouteWithChildren
   '/portail': typeof PortailRoute
   '/profile': typeof ProfileRoute
+  '/sutures': typeof SuturesRouteWithChildren
   '/transmissions': typeof TransmissionsRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/pharmacie/checklist': typeof PharmacieChecklistRoute
   '/pharmacie/comparatif': typeof PharmacieComparatifRoute
   '/pharmacie/fiches': typeof PharmacieFichesRoute
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
+  '/sutures/interventions': typeof SuturesInterventionsRoute
   '/pharmacie/': typeof PharmacieIndexRoute
+  '/sutures/': typeof SuturesIndexRoute
   '/api/public/pharma-fiches-cron': typeof ApiPublicPharmaFichesCronRoute
   '/pharmacie/fiche/$slug': typeof PharmacieFicheSlugRoute
+  '/sutures/fil/$slug': typeof SuturesFilSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,15 +197,19 @@ export interface FileRouteTypes {
     | '/pharmacie'
     | '/portail'
     | '/profile'
+    | '/sutures'
     | '/transmissions'
     | '/modules/$slug'
     | '/pharmacie/checklist'
     | '/pharmacie/comparatif'
     | '/pharmacie/fiches'
     | '/pharmacie/signalements'
+    | '/sutures/interventions'
     | '/pharmacie/'
+    | '/sutures/'
     | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
+    | '/sutures/fil/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -184,9 +223,12 @@ export interface FileRouteTypes {
     | '/pharmacie/comparatif'
     | '/pharmacie/fiches'
     | '/pharmacie/signalements'
+    | '/sutures/interventions'
     | '/pharmacie'
+    | '/sutures'
     | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
+    | '/sutures/fil/$slug'
   id:
     | '__root__'
     | '/'
@@ -195,15 +237,19 @@ export interface FileRouteTypes {
     | '/pharmacie'
     | '/portail'
     | '/profile'
+    | '/sutures'
     | '/transmissions'
     | '/modules/$slug'
     | '/pharmacie/checklist'
     | '/pharmacie/comparatif'
     | '/pharmacie/fiches'
     | '/pharmacie/signalements'
+    | '/sutures/interventions'
     | '/pharmacie/'
+    | '/sutures/'
     | '/api/public/pharma-fiches-cron'
     | '/pharmacie/fiche/$slug'
+    | '/sutures/fil/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -213,6 +259,7 @@ export interface RootRouteChildren {
   PharmacieRoute: typeof PharmacieRouteWithChildren
   PortailRoute: typeof PortailRoute
   ProfileRoute: typeof ProfileRoute
+  SuturesRoute: typeof SuturesRouteWithChildren
   TransmissionsRoute: typeof TransmissionsRoute
   ModulesSlugRoute: typeof ModulesSlugRoute
   ApiPublicPharmaFichesCronRoute: typeof ApiPublicPharmaFichesCronRoute
@@ -260,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sutures': {
+      id: '/sutures'
+      path: '/sutures'
+      fullPath: '/sutures'
+      preLoaderRoute: typeof SuturesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/transmissions': {
@@ -311,6 +365,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PharmacieSignalementsRouteImport
       parentRoute: typeof PharmacieRoute
     }
+    '/sutures/': {
+      id: '/sutures/'
+      path: '/'
+      fullPath: '/sutures/'
+      preLoaderRoute: typeof SuturesIndexRouteImport
+      parentRoute: typeof SuturesRoute
+    }
+    '/sutures/interventions': {
+      id: '/sutures/interventions'
+      path: '/interventions'
+      fullPath: '/sutures/interventions'
+      preLoaderRoute: typeof SuturesInterventionsRouteImport
+      parentRoute: typeof SuturesRoute
+    }
     '/api/public/pharma-fiches-cron': {
       id: '/api/public/pharma-fiches-cron'
       path: '/api/public/pharma-fiches-cron'
@@ -324,6 +392,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/pharmacie/fiche/$slug'
       preLoaderRoute: typeof PharmacieFicheSlugRouteImport
       parentRoute: typeof PharmacieRoute
+    }
+    '/sutures/fil/$slug': {
+      id: '/sutures/fil/$slug'
+      path: '/fil/$slug'
+      fullPath: '/sutures/fil/$slug'
+      preLoaderRoute: typeof SuturesFilSlugRouteImport
+      parentRoute: typeof SuturesRoute
     }
   }
 }
@@ -350,6 +425,21 @@ const PharmacieRouteWithChildren = PharmacieRoute._addFileChildren(
   PharmacieRouteChildren,
 )
 
+interface SuturesRouteChildren {
+  SuturesInterventionsRoute: typeof SuturesInterventionsRoute
+  SuturesIndexRoute: typeof SuturesIndexRoute
+  SuturesFilSlugRoute: typeof SuturesFilSlugRoute
+}
+
+const SuturesRouteChildren: SuturesRouteChildren = {
+  SuturesInterventionsRoute: SuturesInterventionsRoute,
+  SuturesIndexRoute: SuturesIndexRoute,
+  SuturesFilSlugRoute: SuturesFilSlugRoute,
+}
+
+const SuturesRouteWithChildren =
+  SuturesRoute._addFileChildren(SuturesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
@@ -357,6 +447,7 @@ const rootRouteChildren: RootRouteChildren = {
   PharmacieRoute: PharmacieRouteWithChildren,
   PortailRoute: PortailRoute,
   ProfileRoute: ProfileRoute,
+  SuturesRoute: SuturesRouteWithChildren,
   TransmissionsRoute: TransmissionsRoute,
   ModulesSlugRoute: ModulesSlugRoute,
   ApiPublicPharmaFichesCronRoute: ApiPublicPharmaFichesCronRoute,
