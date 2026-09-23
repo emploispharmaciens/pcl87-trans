@@ -7,14 +7,21 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { SutureForm } from "@/components/SutureForm";
 import { SuturePhotos } from "@/components/SuturePhotos";
+import { AValider } from "@/components/AValider";
 import { CoursRendu, FamilyBadge, PlanChips } from "@/components/SutureVisuals";
 import { useAuth } from "@/hooks/useAuth";
 import {
   FAMILY_LABELS,
   STATUT_ACTIF,
   STATUT_RETIRE,
+  DISPONIBILITE_LABELS,
+  PLAN_ICONS,
+  PLAN_LABELS,
   deleteSuture,
   familyColor,
+  validerFil,
+  validerLien,
+  validerLienChirurgien,
   fetchSutures,
   isRetired,
   setSutureStatut,
@@ -156,6 +163,9 @@ function SutureFiche() {
                 </span>
               ) : null}
               <PlanChips plans={suture.plans} />
+              {suture.a_valider ? (
+                <AValider isAdmin={isAdmin} onValider={() => validerFil(suture.id)} />
+              ) : null}
             </div>
             {isRetired(suture) ? (
               <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
@@ -191,7 +201,7 @@ function SutureFiche() {
 
           <section className="module-card p-5">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Interventions concernées · {suture.usages.length}
+              Protocoles opératoires · {suture.usages.length}
             </h2>
             {suture.usages.length === 0 ? (
               <p className="text-sm text-muted-foreground">
@@ -202,9 +212,18 @@ function SutureFiche() {
                 {suture.usages.map((usage) => (
                   <li key={usage.protocole.id} className="flex flex-wrap items-baseline gap-2 py-2">
                     <span className="font-medium">{usage.protocole.nom}</span>
-                    {usage.protocole.region ? (
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs uppercase text-muted-foreground">
-                        {usage.protocole.region}
+                    {usage.plan ? (
+                      <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs">
+                        <i
+                          className={`bi ${PLAN_ICONS[usage.plan] ?? "bi-dot"}`}
+                          aria-hidden="true"
+                        />
+                        {PLAN_LABELS[usage.plan] ?? usage.plan}
+                      </span>
+                    ) : null}
+                    {usage.disponibilite ? (
+                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
+                        {DISPONIBILITE_LABELS[usage.disponibilite]}
                       </span>
                     ) : null}
                     {usage.quantite ? (
@@ -215,11 +234,61 @@ function SutureFiche() {
                     {usage.note ? (
                       <span className="text-sm text-muted-foreground">— {usage.note}</span>
                     ) : null}
+                    {usage.a_valider ? (
+                      <AValider
+                        compact
+                        isAdmin={isAdmin}
+                        onValider={() => validerLien(suture.id, usage.protocole.id)}
+                      />
+                    ) : null}
                   </li>
                 ))}
               </ul>
             )}
           </section>
+
+          {suture.chirurgiens.length > 0 ? (
+            <section className="module-card p-5">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Chirurgiens concernés
+              </h2>
+              <ul className="space-y-1.5">
+                {suture.chirurgiens.map((c) => (
+                  <li key={c.chirurgien.id} className="flex flex-wrap items-center gap-2 text-sm">
+                    <i className="bi bi-person-badge text-module-strong" aria-hidden="true" />
+                    <span className="font-medium">{c.chirurgien.nom}</span>
+                    {c.note ? <span className="text-muted-foreground">— {c.note}</span> : null}
+                    {c.a_valider ? (
+                      <AValider
+                        compact
+                        isAdmin={isAdmin}
+                        onValider={() => validerLienChirurgien(suture.id, c.chirurgien.id)}
+                      />
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {suture.noms.length > 0 ? (
+            <section className="module-card p-5">
+              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Aussi écrit dans les fiches de picking
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {suture.noms.map((n) => (
+                  <span
+                    key={n.id}
+                    className="rounded-full bg-muted px-2.5 py-1 text-xs text-foreground"
+                    title={n.source ?? undefined}
+                  >
+                    « {n.nom} »
+                  </span>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           {isAdmin ? (
             <section className="module-card space-y-3 p-5" aria-label="Gestion du fil">

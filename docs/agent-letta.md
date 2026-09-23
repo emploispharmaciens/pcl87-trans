@@ -16,7 +16,8 @@ La base n'en garde qu'une empreinte.
 
 - L'agent ne remplit que des cases vides. Une case déjà remplie est refusée.
 - L'agent ne modifie jamais la marque, le calibre, la famille ni le statut d'un fil.
-- L'agent ne supprime rien.
+- L'agent ne supprime rien, et ne modifie jamais un élément existant : il crée, ou il remplit des cases vides.
+- Convention de nommage : `docs/convention-nommage-fils.md`.
 - Chaque écriture est inscrite dans le journal des agents, avec l'avant et l'après.
 
 ## Actions
@@ -39,7 +40,18 @@ Une idée par ligne, séparée par un saut de ligne (`\n`). L'appli met en forme
 - une ligne « Piège : … » : affichée en encadré d'alerte ;
 - dernière ligne « Source : … » : affichée en petit, en bas.
 - `ajouter_photo` : `{ "id": "...", "url": "https://...", "source": "d'où vient l'image" }`. 6 photos au maximum par fil.
+- `trouver_fil` : `{ "nom": "Polysorb 2/0 petite aiguille" }` → correspondances exactes puis proches (noms des fils et noms de terrain).
+- `ajouter_nom_terrain` : `{ "id": "<fil>", "nom": "...", "source": "fiche de picking + phrase" }`.
+- `creer_fil` : `{ "marque": "POLYSORB 3/0", "calibre": "3/0", "famille": "resorbable_tresse", "source": "...", "champs": { ... } }`.
+- `lister_protocoles`, `lire_protocole` (`{ "id" }` ou `{ "slug" }`).
+- `creer_protocole` : `{ "nom": "...", "source": "...", "region": "...", "description": "..." }`.
+- `creer_lien` : `{ "fil_id", "protocole_id", "source", "quantite", "plan", "disponibilite": "a_sortir" | "a_la_demande", "note" }`.
+- `completer_lien` : `{ "fil_id", "protocole_id", "champs": { "quantite", "plan", "disponibilite", "note" } }` — cases vides seulement.
+- `lister_chirurgiens`, `creer_chirurgien` (`{ "nom", "source", "initiales", "specialite" }`).
+- `lier_chirurgien` : `{ "fil_id", "chirurgien_id", "source", "note" }` — seulement quand un fil est propre à un chirurgien.
 - `lire_formation` : contenu de la formation, bloc par bloc.
+
+Tout ce que Letta crée porte l'étiquette « à valider », visible tout de suite dans l'appli. Un admin la retire d'un clic.
 - `completer_formation` :
   - remplir un bloc vide : `{ "bloc_id": "...", "points": ["...", "..."] }`
   - ajouter un bloc : `{ "etape": "motivation" | "explication" | "methode", "titre": "...", "points": ["..."] }`

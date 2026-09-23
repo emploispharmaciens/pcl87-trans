@@ -84,77 +84,188 @@ export const FAMILY_SHORT: Record<string, string> = {
 
 /** Avertissement à afficher en tête du module. */
 
-export type SutureUsage = {
-  protocole: Protocole;
+export type LienInfos = {
   quantite: string | null;
   note: string | null;
+  plan: string | null;
+  disponibilite: string | null;
+  a_valider: boolean;
+  source: string | null;
 };
+
+export type SutureUsage = LienInfos & { protocole: Protocole };
+
+export type Chirurgien = {
+  id: string;
+  nom: string;
+  initiales: string | null;
+  specialite: string | null;
+  a_valider: boolean;
+};
+
+export type SutureChirurgien = {
+  chirurgien: Chirurgien;
+  note: string | null;
+  a_valider: boolean;
+};
+
+export type SutureNom = { id: string; nom: string; source: string | null };
 
 export type SutureWithUsage = Suture & {
   usages: SutureUsage[];
+  noms: SutureNom[];
+  chirurgiens: SutureChirurgien[];
 };
 
 export type ProtocoleWithFils = Protocole & {
-  fils: { suture: Suture; quantite: string | null; note: string | null }[];
+  fils: (LienInfos & { suture: Suture })[];
 };
 
-type LinkRow = {
+type LinkRow = LienInfos & {
   suture_id: string;
   protocole_id: string;
-  quantite: string | null;
-  note: string | null;
 };
 
-async function fetchRaw() {
-  const [sutures, protocoles, links] = await Promise.all([
-    supabase.from("sutures").select("*").order("marque", { ascending: true }),
-    supabase.from("protocoles").select("*").order("nom", { ascending: true }),
-    supabase.from("suture_protocoles").select("suture_id, protocole_id, quantite, note"),
-  ]);
+type ChirLinkRow = {
+  suture_id: string;
+  chirurgien_id: string;
+  note: string | null;
+  a_valider: boolean;
+};
+type NomRow = SutureNom & { suture_id: string };
 
-  if (sutures.error) throw sutures.error;
-  if (protocoles.error) throw protocoles.error;
-  if (links.error) throw links.error;
+/** Ordre de fermeture : de la profondeur vers la peau. */
+export const PLAN_ORDER = ["os", "tendon_ligament", "profond", "sous_cutane", "peau"];
 
+export const DISPONIBILITE_LABELS: Record<string, string> = {
+  a_sortir: "À sortir",
+  a_la_demande: "À la demande",
+};
+
+function lienInfos(l: LinkRow): LienInfos {
   return {
-    sutures: (sutures.data ?? []) as Suture[],
-    protocoles: (protocoles.data ?? []) as Protocole[],
-    links: (links.data ?? []) as LinkRow[],
+    quantite: l.quantite,
+    note: l.note,
+    plan: l.plan ?? null,
+    disponibilite: l.disponibilite ?? null,
+    a_valider: Boolean(l.a_valider),
+    source: l.source ?? null,
   };
 }
 
-/** Liste des fils avec le décompte de leurs interventions. */
-export async function fetchSutures(): Promise<SutureWithUsage[]> {
-  const { sutures, protocoles, links } = await fetchRaw();
-  const byProtocole = new Map(protocoles.map((p) => [p.id, p]));
+async function fetchRaw() {
+  const [sutures, protocoles, links, chirurgiens, chirLinks, noms] = await Promise.all([
+    supabase.from("sutures").select("*").order("marque", { ascending: true }),
+    supabase.from("protocoles").select("*").order("nom", { ascending: true }),
+    supabase.from("suture_protocoles").select("*"),
+    supabase.from("chirurgiens").select("id, nom, initiales, specialite, a_valider").order("nom"),
+    supabase.from("suture_chirurgiens").select("suture_id, chirurgien_id, note, a_valider"),
+    supabase.from("suture_noms").select("id, suture_id, nom, source").order("nom"),
+  ]);
+  if (sutures.error) throw sutures.error;
+  if (protocoles.error) throw protocoles.error;
+  if (links.error) throw links.error;
+  // Tables de la phase 4a : absentes tant que la migration n'est pas passée.
+  return {
+    sutures: (sutures.data ?? []) as Suture[],
+    protocoles: (protocoles.data ?? []) as Protocole[],
+    links: (links.data ?? []) as unknown as LinkRow[],
+    chirurgiens: (chirurgiens.error ? [] : (chirurgiens.data ?? [])) as Chirurgien[],
+    chirLinks: (chirLinks.error ? [] : (chirLinks.data ?? [])) as ChirLinkRow[],
+    noms: (noms.error ? [] : (noms.data ?? [])) as NomRow[],
+  };
+}
 
+/** Liste des fils avec leurs protocoles, noms de terrain et chirurgiens. */
+export async function fetchSutures(): Promise<SutureWithUsage[]> {
+  const { sutures, protocoles, links, chirurgiens, chirLinks, noms } = await fetchRaw();
+  const byProtocole = new Map(protocoles.map((p) => [p.id, p]));
+  const byChirurgien = new Map(chirurgiens.map((c) => [c.id, c]));
   return sutures.map((suture) => ({
     ...suture,
     usages: links
       .filter((l) => l.suture_id === suture.id)
       .flatMap((l) => {
         const protocole = byProtocole.get(l.protocole_id);
-        return protocole ? [{ protocole, quantite: l.quantite, note: l.note }] : [];
+        return protocole ? [{ protocole, ...lienInfos(l) }] : [];
       })
       .sort((a, b) => a.protocole.nom.localeCompare(b.protocole.nom, "fr")),
+    noms: noms
+      .filter((n) => n.suture_id === suture.id)
+      .map(({ id, nom, source }) => ({ id, nom, source })),
+    chirurgiens: chirLinks
+      .filter((l) => l.suture_id === suture.id)
+      .flatMap((l) => {
+        const chirurgien = byChirurgien.get(l.chirurgien_id);
+        return chirurgien ? [{ chirurgien, note: l.note, a_valider: Boolean(l.a_valider) }] : [];
+      }),
   }));
 }
 
-/** Liste des interventions avec les fils qu'elles consomment. */
+function planRank(plan: string | null): number {
+  const index = plan ? PLAN_ORDER.indexOf(plan) : -1;
+  return index === -1 ? PLAN_ORDER.length : index;
+}
+
+/** Protocoles opératoires avec leurs fils, rangés dans l'ordre de fermeture. */
 export async function fetchProtocoles(): Promise<ProtocoleWithFils[]> {
   const { sutures, protocoles, links } = await fetchRaw();
   const bySuture = new Map(sutures.map((s) => [s.id, s]));
-
   return protocoles.map((protocole) => ({
     ...protocole,
     fils: links
       .filter((l) => l.protocole_id === protocole.id)
       .flatMap((l) => {
         const suture = bySuture.get(l.suture_id);
-        return suture ? [{ suture, quantite: l.quantite, note: l.note }] : [];
+        return suture ? [{ suture, ...lienInfos(l) }] : [];
       })
-      .sort((a, b) => (a.suture.marque ?? "").localeCompare(b.suture.marque ?? "", "fr")),
+      .sort(
+        (a, b) =>
+          planRank(a.plan) - planRank(b.plan) ||
+          (a.suture.marque ?? "").localeCompare(b.suture.marque ?? "", "fr"),
+      ),
   }));
+}
+
+/* Validation par un admin des éléments créés par Letta ------------------ */
+
+async function checkUpdate(query: PromiseLike<{ data: unknown[] | null; error: unknown }>) {
+  const { data, error } = await query;
+  if (error || !data || data.length === 0) throw new Error(DB_ERROR_MESSAGE);
+}
+
+export function validerLien(sutureId: string, protocoleId: string) {
+  return checkUpdate(
+    supabase
+      .from("suture_protocoles")
+      .update({ a_valider: false })
+      .eq("suture_id", sutureId)
+      .eq("protocole_id", protocoleId)
+      .select("suture_id"),
+  );
+}
+
+export function validerLienChirurgien(sutureId: string, chirurgienId: string) {
+  return checkUpdate(
+    supabase
+      .from("suture_chirurgiens")
+      .update({ a_valider: false })
+      .eq("suture_id", sutureId)
+      .eq("chirurgien_id", chirurgienId)
+      .select("suture_id"),
+  );
+}
+
+export function validerFil(id: string) {
+  return checkUpdate(
+    supabase.from("sutures").update({ a_valider: false }).eq("id", id).select("id"),
+  );
+}
+
+export function validerProtocole(id: string) {
+  return checkUpdate(
+    supabase.from("protocoles").update({ a_valider: false }).eq("id", id).select("id"),
+  );
 }
 
 export function normalize(value: string): string {
@@ -165,10 +276,14 @@ export function normalize(value: string): string {
     .trim();
 }
 
-export function matchesSuture(suture: Suture, query: string): boolean {
+export function matchesSuture(
+  suture: Suture & { noms?: { nom: string }[] },
+  query: string,
+): boolean {
   const q = normalize(query);
   if (!q) return true;
   return [
+    ...(suture.noms ?? []).map((n) => n.nom),
     suture.marque,
     suture.calibre,
     suture.reference,

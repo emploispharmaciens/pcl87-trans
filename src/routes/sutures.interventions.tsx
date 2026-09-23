@@ -3,7 +3,46 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
-import { FAMILY_SHORT, familyColor, fetchProtocoles, normalize } from "@/lib/sutures-api";
+import { AValider } from "@/components/AValider";
+import { useAuth } from "@/hooks/useAuth";
+import {
+  DISPONIBILITE_LABELS,
+  FAMILY_SHORT,
+  PLAN_ICONS,
+  PLAN_LABELS,
+  familyColor,
+  fetchProtocoles,
+  normalize,
+  validerLien,
+  validerProtocole,
+  type ProtocoleWithFils,
+} from "@/lib/sutures-api";
+
+const REGION_LABELS: Record<string, string> = {
+  hanche: "Hanche",
+  genou: "Genou",
+  epaule: "Épaule",
+  coude: "Coude",
+  poignet_main: "Poignet et main",
+  tendon: "Tendons",
+  autre: "Autres",
+};
+
+type Fil = ProtocoleWithFils["fils"][number];
+
+function hasPlans(fils: Fil[]) {
+  return fils.some((f) => f.plan);
+}
+
+/** Regroupe les fils par plan, dans l'ordre de fermeture. */
+function groupByPlan(fils: Fil[]): [string, Fil[]][] {
+  const groups = new Map<string, Fil[]>();
+  for (const f of fils) {
+    const key = f.plan ?? "non_precise";
+    groups.set(key, [...(groups.get(key) ?? []), f]);
+  }
+  return [...groups.entries()];
+}
 
 export const Route = createFileRoute("/sutures/interventions")({
   head: () => ({
@@ -29,6 +68,7 @@ export const Route = createFileRoute("/sutures/interventions")({
 
 function SuturesByIntervention() {
   const [search, setSearch] = useState("");
+  const { isAdmin } = useAuth();
   const {
     data: protocoles,
     isLoading,
@@ -63,12 +103,12 @@ function SuturesByIntervention() {
       <Input
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        placeholder="Rechercher une intervention ou un fil…"
-        aria-label="Rechercher une intervention"
+        placeholder="Rechercher un protocole opératoire ou un fil…"
+        aria-label="Rechercher un protocole opératoire"
       />
 
       <p className="mt-4 text-sm text-muted-foreground">
-        {count} intervention{count > 1 ? "s" : ""} relevée{count > 1 ? "s" : ""}.
+        {count} protocole{count > 1 ? "s" : ""} opératoire{count > 1 ? "s" : ""}.
       </p>
 
       <div className="mt-4 space-y-8">
@@ -79,7 +119,7 @@ function SuturesByIntervention() {
         {!isLoading && !isError && count === 0 ? (
           <EmptyState
             icon="bi-search"
-            title="Aucune intervention ne correspond"
+            title="Aucun protocole ne correspond"
             hint="Essayez un autre mot."
           />
         ) : null}
@@ -87,47 +127,88 @@ function SuturesByIntervention() {
         {grouped.map(([region, rows]) => (
           <section key={region}>
             <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              {region} · {rows.length}
+              {REGION_LABELS[region] ?? region} · {rows.length}
             </h2>
             <div className="space-y-3">
               {rows.map((protocole) => (
                 <article key={protocole.id} className="module-card p-4">
-                  <h3 className="font-semibold text-module-text">{protocole.nom}</h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-module-text">{protocole.nom}</h3>
+                    {protocole.a_valider ? (
+                      <AValider
+                        compact
+                        isAdmin={isAdmin}
+                        onValider={() => validerProtocole(protocole.id)}
+                      />
+                    ) : null}
+                  </div>
                   {protocole.description ? (
                     <p className="mt-1 text-sm text-muted-foreground">{protocole.description}</p>
                   ) : null}
 
                   {protocole.fils.length === 0 ? (
                     <p className="mt-2 text-sm italic text-muted-foreground">
-                      Aucun fil relevé pour cette intervention.
+                      Aucun fil relevé pour ce protocole.
                     </p>
                   ) : (
-                    <ul className="mt-3 flex flex-wrap gap-2">
-                      {protocole.fils.map((f) => (
-                        <li key={f.suture.id}>
-                          <Link
-                            to="/sutures/fil/$slug"
-                            params={{ slug: f.suture.slug ?? "" }}
-                            className="flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase transition hover:opacity-80"
-                            style={{
-                              backgroundColor: `${familyColor(f.suture.famille)}1a`,
-                              color: familyColor(f.suture.famille),
-                            }}
-                            title={`${FAMILY_SHORT[f.suture.famille ?? ""] ?? ""}${f.note ? ` — ${f.note}` : ""}`}
-                          >
-                            <span
-                              className="h-2 w-2 rounded-full"
-                              style={{ backgroundColor: familyColor(f.suture.famille) }}
-                              aria-hidden="true"
-                            />
-                            {f.suture.marque}
-                            {f.quantite ? (
-                              <span className="text-foreground">{f.quantite}</span>
-                            ) : null}
-                          </Link>
-                        </li>
+                    <div className="mt-3 space-y-3">
+                      {groupByPlan(protocole.fils).map(([plan, fils]) => (
+                        <div key={plan}>
+                          {plan !== "non_precise" || hasPlans(protocole.fils) ? (
+                            <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                              <i
+                                className={`bi ${PLAN_ICONS[plan] ?? "bi-question-circle"}`}
+                                aria-hidden="true"
+                              />
+                              {PLAN_LABELS[plan] ?? "Plan non précisé"}
+                            </p>
+                          ) : null}
+                          <ul className="space-y-1.5">
+                            {fils.map((f) => (
+                              <li
+                                key={f.suture.id}
+                                className="flex flex-wrap items-center gap-2 rounded-lg border-l-4 bg-muted/40 px-3 py-2 text-sm"
+                                style={{ borderLeftColor: familyColor(f.suture.famille) }}
+                              >
+                                <Link
+                                  to="/sutures/fil/$slug"
+                                  params={{ slug: f.suture.slug ?? "" }}
+                                  className="font-semibold uppercase hover:underline"
+                                  style={{ color: familyColor(f.suture.famille) }}
+                                  title={FAMILY_SHORT[f.suture.famille ?? ""] ?? ""}
+                                >
+                                  {f.suture.marque}
+                                </Link>
+                                {f.quantite ? (
+                                  <span className="font-semibold">{f.quantite}</span>
+                                ) : null}
+                                {f.disponibilite ? (
+                                  <span
+                                    className={`rounded-full px-2 py-0.5 text-[11px] font-semibold uppercase ${
+                                      f.disponibilite === "a_sortir"
+                                        ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+                                        : "bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-200"
+                                    }`}
+                                  >
+                                    {DISPONIBILITE_LABELS[f.disponibilite]}
+                                  </span>
+                                ) : null}
+                                {f.note ? (
+                                  <span className="text-xs text-muted-foreground">{f.note}</span>
+                                ) : null}
+                                {f.a_valider ? (
+                                  <AValider
+                                    compact
+                                    isAdmin={isAdmin}
+                                    onValider={() => validerLien(f.suture.id, protocole.id)}
+                                  />
+                                ) : null}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
                       ))}
-                    </ul>
+                    </div>
                   )}
                 </article>
               ))}

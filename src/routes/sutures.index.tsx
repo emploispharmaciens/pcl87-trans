@@ -133,6 +133,11 @@ function SutureCard({
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium">
         <FamilyBadge famille={suture.famille} short />
         <PlanChips plans={suture.plans} />
+        {suture.a_valider ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold uppercase text-sky-800 dark:bg-sky-950/60 dark:text-sky-200">
+            <i className="bi bi-robot" aria-hidden="true" />À valider
+          </span>
+        ) : null}
         {suture.calibre ? (
           <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
             Calibre {suture.calibre}
@@ -150,7 +155,7 @@ function SutureCard({
         <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
           {usageCount === 0
             ? "Jamais demandé"
-            : `${usageCount} intervention${usageCount > 1 ? "s" : ""}`}
+            : `${usageCount} protocole${usageCount > 1 ? "s" : ""}`}
         </span>
         <span className="ml-auto flex items-center gap-1 text-module-strong">
           Fiche

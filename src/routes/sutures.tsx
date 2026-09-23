@@ -15,7 +15,7 @@ type Tab = { to: string; label: string; icon: string; exact?: boolean };
 
 const TABS: Tab[] = [
   { to: "/sutures", label: "Les fils", icon: "bi-bezier2", exact: true },
-  { to: "/sutures/interventions", label: "Interventions", icon: "bi-clipboard2-pulse" },
+  { to: "/sutures/interventions", label: "Protocoles", icon: "bi-clipboard2-pulse" },
 ];
 
 const FORMATION_TAB: Tab = { to: "/sutures/formation", label: "Formation", icon: "bi-mortarboard" };
