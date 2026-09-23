@@ -342,6 +342,135 @@ export type Database = {
         }
         Relationships: []
       }
+      protocoles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          nom: string
+          region: string | null
+          slug: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          nom: string
+          region?: string | null
+          slug?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          nom?: string
+          region?: string | null
+          slug?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      suture_protocoles: {
+        Row: {
+          note: string | null
+          protocole_id: string
+          quantite: string | null
+          suture_id: string
+        }
+        Insert: {
+          note?: string | null
+          protocole_id: string
+          quantite?: string | null
+          suture_id: string
+        }
+        Update: {
+          note?: string | null
+          protocole_id?: string
+          quantite?: string | null
+          suture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suture_protocoles_protocole_id_fkey"
+            columns: ["protocole_id"]
+            isOneToOne: false
+            referencedRelation: "protocoles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suture_protocoles_suture_id_fkey"
+            columns: ["suture_id"]
+            isOneToOne: false
+            referencedRelation: "sutures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sutures: {
+        Row: {
+          calibre: string | null
+          composition: string | null
+          couleur: string | null
+          cours: string | null
+          created_at: string | null
+          famille: string | null
+          id: string
+          longueur: string | null
+          marque: string | null
+          note_qualite: string | null
+          photo_url: string | null
+          reference: string | null
+          slug: string | null
+          source: string | null
+          statut: string | null
+          type_aiguille: string | null
+          updated_at: string | null
+          usage_notes: string | null
+        }
+        Insert: {
+          calibre?: string | null
+          composition?: string | null
+          couleur?: string | null
+          cours?: string | null
+          created_at?: string | null
+          famille?: string | null
+          id?: string
+          longueur?: string | null
+          marque?: string | null
+          note_qualite?: string | null
+          photo_url?: string | null
+          reference?: string | null
+          slug?: string | null
+          source?: string | null
+          statut?: string | null
+          type_aiguille?: string | null
+          updated_at?: string | null
+          usage_notes?: string | null
+        }
+        Update: {
+          calibre?: string | null
+          composition?: string | null
+          couleur?: string | null
+          cours?: string | null
+          created_at?: string | null
+          famille?: string | null
+          id?: string
+          longueur?: string | null
+          marque?: string | null
+          note_qualite?: string | null
+          photo_url?: string | null
+          reference?: string | null
+          slug?: string | null
+          source?: string | null
+          statut?: string | null
+          type_aiguille?: string | null
+          updated_at?: string | null
+          usage_notes?: string | null
+        }
+        Relationships: []
+      }
       taggings: {
         Row: {
           content_id: string
