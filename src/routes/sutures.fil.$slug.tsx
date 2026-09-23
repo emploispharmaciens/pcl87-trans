@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { SutureForm } from "@/components/SutureForm";
+import { SuturePhotos } from "@/components/SuturePhotos";
 import { useAuth } from "@/hooks/useAuth";
 import {
   FAMILY_LABELS,
@@ -158,6 +159,8 @@ function SutureFiche() {
               </p>
             ) : null}
           </header>
+
+          <SuturePhotos suture={suture} isAdmin={isAdmin} />
 
           <section className="module-card p-5">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">

@@ -2,7 +2,9 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AuthGate } from "@/components/AuthGate";
 import { AppHeader } from "@/components/AppHeader";
 import { ModuleBanner } from "@/components/ModuleBanner";
+import { useAuth } from "@/hooks/useAuth";
 import { SUTURE_DISCLAIMER } from "@/lib/sutures-api";
+import { FORMATION_STATUT } from "@/lib/sutures-formation";
 
 export const Route = createFileRoute("/sutures")({
   component: () => (
@@ -19,7 +21,12 @@ const TABS: Tab[] = [
   { to: "/sutures/interventions", label: "Interventions", icon: "bi-clipboard2-pulse" },
 ];
 
+const FORMATION_TAB: Tab = { to: "/sutures/formation", label: "Formation", icon: "bi-mortarboard" };
+
 function SuturesLayout() {
+  const { isAdmin } = useAuth();
+  const tabs = FORMATION_STATUT === "valide" || isAdmin ? [...TABS, FORMATION_TAB] : TABS;
+
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       <AppHeader />
@@ -38,7 +45,7 @@ function SuturesLayout() {
 
       <nav className="hidden border-b border-border bg-card sm:block" aria-label="Sections sutures">
         <div className="mx-auto flex max-w-4xl gap-1 px-4">
-          {TABS.map((tab) => (
+          {tabs.map((tab) => (
             <Link
               key={tab.to}
               to={tab.to}
@@ -55,10 +62,11 @@ function SuturesLayout() {
       <Outlet />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-border bg-card sm:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 grid border-t border-border bg-card sm:hidden"
+        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
         aria-label="Sections sutures"
       >
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <Link
             key={tab.to}
             to={tab.to}

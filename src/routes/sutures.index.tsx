@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { SutureForm } from "@/components/SutureForm";
+import { useSutureImageUrls } from "@/hooks/useSutureImageUrls";
 import { useAuth } from "@/hooks/useAuth";
 import {
   FAMILY_LABELS,
   FAMILY_SHORT,
   SUTURE_FAMILIES,
   createSuture,
+  fetchSutureImages,
   fetchSutures,
   isIncomplete,
   isRetired,
@@ -68,7 +70,13 @@ function Chip({
   );
 }
 
-function SutureCard({ suture }: { suture: SutureWithUsage }) {
+function SutureCard({
+  suture,
+  photoUrl,
+}: {
+  suture: SutureWithUsage;
+  photoUrl?: string | undefined;
+}) {
   const usageCount = suture.usages.length;
   return (
     <Link
@@ -77,7 +85,15 @@ function SutureCard({ suture }: { suture: SutureWithUsage }) {
       className="module-card block p-4 transition hover:border-module-strong"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        {photoUrl ? (
+          <img
+            src={photoUrl}
+            alt=""
+            className="h-14 w-14 shrink-0 rounded-md bg-muted object-cover"
+            loading="lazy"
+          />
+        ) : null}
+        <div className="min-w-0 flex-1">
           <h3 className="font-semibold uppercase text-module-text">{suture.marque}</h3>
           <p className="text-sm text-muted-foreground">
             {suture.type_aiguille || "Aiguille [NON DÉFINI]"}
@@ -146,6 +162,19 @@ function SuturesList() {
     queryKey: ["sutures"],
     queryFn: fetchSutures,
   });
+
+  const { data: allImages = [] } = useQuery({
+    queryKey: ["suture-images", "all"],
+    queryFn: () => fetchSutureImages(),
+  });
+  const mainPhotos = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const image of allImages) {
+      if (!map.has(image.content_id)) map.set(image.content_id, image.storage_path);
+    }
+    return map;
+  }, [allImages]);
+  const { data: photoUrls } = useSutureImageUrls([...mainPhotos.values()]);
 
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
@@ -259,7 +288,11 @@ function SuturesList() {
             </h2>
             <div className="space-y-3">
               {rows.map((suture) => (
-                <SutureCard key={suture.id} suture={suture} />
+                <SutureCard
+                  key={suture.id}
+                  suture={suture}
+                  photoUrl={photoUrls?.[mainPhotos.get(suture.id) ?? ""]}
+                />
               ))}
             </div>
           </section>

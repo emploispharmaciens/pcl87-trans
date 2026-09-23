@@ -237,3 +237,37 @@ export async function deleteSuture(id: string): Promise<void> {
   const { data, error } = await supabase.from("sutures").delete().eq("id", id).select("id");
   if (error || !data || data.length === 0) throw new Error(DB_ERROR_MESSAGE);
 }
+
+/* ------------------------------------------------------------------ */
+/* Photos des fils                                                      */
+/* ------------------------------------------------------------------ */
+
+export const SUTURE_IMAGE_TYPE = "sutures";
+
+export type SutureImage = {
+  id: string;
+  content_id: string;
+  storage_path: string;
+  position: number;
+};
+
+/** Photos d'un fil, ou de tous les fils si aucun identifiant n'est donné. */
+export async function fetchSutureImages(sutureId?: string): Promise<SutureImage[]> {
+  let query = supabase
+    .from("content_images")
+    .select("id, content_id, storage_path, position")
+    .eq("content_type_code", SUTURE_IMAGE_TYPE)
+    .order("position");
+  if (sutureId) query = query.eq("content_id", sutureId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return (data ?? []) as SutureImage[];
+}
+
+/** Adresse de recherche d'images pour un fil (ouverte dans un nouvel onglet). */
+export function webImageSearchUrl(suture: Pick<Suture, "marque" | "calibre" | "reference">) {
+  const terms = [suture.marque, suture.calibre, suture.reference, "suture"]
+    .filter(Boolean)
+    .join(" ");
+  return `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(terms)}`;
+}
