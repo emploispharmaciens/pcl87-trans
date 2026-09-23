@@ -520,6 +520,7 @@ export type Database = {
           marque: string | null
           note_qualite: string | null
           photo_url: string | null
+          plans: string[] | null
           reference: string | null
           slug: string | null
           source: string | null
@@ -540,6 +541,7 @@ export type Database = {
           marque?: string | null
           note_qualite?: string | null
           photo_url?: string | null
+          plans?: string[] | null
           reference?: string | null
           slug?: string | null
           source?: string | null
@@ -560,6 +562,7 @@ export type Database = {
           marque?: string | null
           note_qualite?: string | null
           photo_url?: string | null
+          plans?: string[] | null
           reference?: string | null
           slug?: string | null
           source?: string | null

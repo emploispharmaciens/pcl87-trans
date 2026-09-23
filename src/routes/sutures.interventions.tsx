@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
-import { FAMILY_SHORT, fetchProtocoles, normalize } from "@/lib/sutures-api";
+import { FAMILY_SHORT, familyColor, fetchProtocoles, normalize } from "@/lib/sutures-api";
 
 export const Route = createFileRoute("/sutures/interventions")({
   head: () => ({
@@ -29,7 +29,13 @@ export const Route = createFileRoute("/sutures/interventions")({
 
 function SuturesByIntervention() {
   const [search, setSearch] = useState("");
-  const { data: protocoles, isLoading, isError, error, refetch } = useQuery({
+  const {
+    data: protocoles,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["suture-protocoles"],
     queryFn: fetchProtocoles,
   });
@@ -102,12 +108,21 @@ function SuturesByIntervention() {
                           <Link
                             to="/sutures/fil/$slug"
                             params={{ slug: f.suture.slug ?? "" }}
-                            className="flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-semibold uppercase text-muted-foreground transition hover:bg-module-strong/10 hover:text-module-strong"
+                            className="flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase transition hover:opacity-80"
+                            style={{
+                              backgroundColor: `${familyColor(f.suture.famille)}1a`,
+                              color: familyColor(f.suture.famille),
+                            }}
                             title={`${FAMILY_SHORT[f.suture.famille ?? ""] ?? ""}${f.note ? ` — ${f.note}` : ""}`}
                           >
+                            <span
+                              className="h-2 w-2 rounded-full"
+                              style={{ backgroundColor: familyColor(f.suture.famille) }}
+                              aria-hidden="true"
+                            />
                             {f.suture.marque}
                             {f.quantite ? (
-                              <span className="text-module-strong">{f.quantite}</span>
+                              <span className="text-foreground">{f.quantite}</span>
                             ) : null}
                           </Link>
                         </li>

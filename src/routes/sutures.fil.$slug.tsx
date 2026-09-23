@@ -7,12 +7,14 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { SutureForm } from "@/components/SutureForm";
 import { SuturePhotos } from "@/components/SuturePhotos";
+import { CoursRendu, FamilyBadge, PlanChips } from "@/components/SutureVisuals";
 import { useAuth } from "@/hooks/useAuth";
 import {
   FAMILY_LABELS,
   STATUT_ACTIF,
   STATUT_RETIRE,
   deleteSuture,
+  familyColor,
   fetchSutures,
   isRetired,
   setSutureStatut,
@@ -141,11 +143,20 @@ function SutureFiche() {
 
       {suture ? (
         <article className="mt-4 space-y-6">
-          <header className="module-card p-5">
+          <header
+            className="module-card border-t-4 p-5"
+            style={{ borderTopColor: familyColor(suture.famille) }}
+          >
             <h1 className="text-2xl font-semibold uppercase text-module-text">{suture.marque}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {FAMILY_LABELS[suture.famille ?? ""] ?? `Famille ${UNDEFINED}`}
-            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <FamilyBadge famille={suture.famille} />
+              {suture.calibre ? (
+                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
+                  Calibre {suture.calibre}
+                </span>
+              ) : null}
+              <PlanChips plans={suture.plans} />
+            </div>
             {isRetired(suture) ? (
               <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-semibold uppercase text-muted-foreground">
                 <i className="bi bi-archive" aria-hidden="true" />
@@ -248,10 +259,11 @@ function SutureFiche() {
 
           {suture.cours ? (
             <section className="module-card p-5">
-              <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-                Cours
+              <h2 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <i className="bi bi-mortarboard" aria-hidden="true" />
+                Le cours
               </h2>
-              <p className="whitespace-pre-line text-sm leading-relaxed">{suture.cours}</p>
+              <CoursRendu cours={suture.cours} famille={suture.famille} />
             </section>
           ) : null}
         </article>

@@ -22,7 +22,11 @@ export const CHAMPS_COMPLETABLES = [
   "usage_notes",
   "note_qualite",
   "cours",
+  "plans",
 ] as const;
+
+/** Valeurs autorisées pour le champ « plans » (plusieurs possibles). */
+const PLANS_AUTORISES = ["os", "tendon_ligament", "profond", "sous_cutane", "peau"];
 
 type Champ = (typeof CHAMPS_COMPLETABLES)[number];
 
@@ -82,12 +86,13 @@ const AIDE = {
     "Le calibre « 2 » et le calibre « 2/0 » sont deux fils différents.",
     "N'écris que des informations vérifiées. Si tu n'es pas sûr, laisse la case vide.",
     "Chaque écriture est journalisée avec l'avant et l'après.",
+    "Cours : une idée par ligne, séparée par un saut de ligne. Première ligne = ce qu'est le fil. Une ligne « Piège : … ». Dernière ligne « Source : … ».",
   ],
   actions: {
     aide: "Affiche ce mode d'emploi.",
     lister_fils: "Liste les fils, avec leurs cases vides et leur nombre de photos.",
     lire_fil: "Détail d'un fil. Paramètre : id ou slug.",
-    completer_fil: `Remplit des cases vides d'un fil. Paramètres : id, champs (objet). Champs autorisés : ${CHAMPS_COMPLETABLES.join(", ")}.`,
+    completer_fil: `Remplit des cases vides d'un fil. Paramètres : id, champs (objet). Champs autorisés : ${CHAMPS_COMPLETABLES.join(", ")}. « plans » est une liste parmi : ${PLANS_AUTORISES.join(", ")}.`,
     ajouter_photo: `Ajoute une photo depuis une adresse https. Paramètres : id, url, source (texte obligatoire : d'où vient l'image). ${MAX_SUTURE_PHOTOS} photos au maximum par fil.`,
     lire_formation: "Contenu de la formation, bloc par bloc.",
     completer_formation:
@@ -101,7 +106,7 @@ const schemas = {
     .refine((v) => v.id || v.slug, "Donne id ou slug"),
   completer_fil: z.object({
     id: z.string().uuid(),
-    champs: z.record(z.string(), z.string().max(20000)),
+    champs: z.record(z.string(), z.union([z.string().max(20000), z.array(z.string()).max(10)])),
   }),
   ajouter_photo: z.object({
     id: z.string().uuid(),
@@ -182,18 +187,42 @@ async function completerFil(agent: string, params: z.infer<typeof schemas.comple
 
   const remplis: string[] = [];
   const refuses: { champ: string; raison: string }[] = [];
-  const update: Partial<Record<Champ, string>> = {};
+  const update: Partial<Record<Exclude<Champ, "plans">, string>> & { plans?: string[] } = {};
 
   for (const [champ, brut] of Object.entries(params.champs)) {
-    const valeur = brut.trim();
     if (!(CHAMPS_COMPLETABLES as readonly string[]).includes(champ)) {
       refuses.push({ champ, raison: "Champ non autorisé pour un agent" });
-    } else if (valeur === "") {
-      refuses.push({ champ, raison: "Valeur vide" });
-    } else if (!estVide(row[champ])) {
+      continue;
+    }
+    if (!estVide(row[champ])) {
       refuses.push({ champ, raison: "Case déjà remplie : seules les cases vides sont complétées" });
+      continue;
+    }
+    if (champ === "plans") {
+      const plans = (Array.isArray(brut) ? brut : [brut]).map((p) => p.trim()).filter(Boolean);
+      const inconnus = plans.filter((p) => !PLANS_AUTORISES.includes(p));
+      if (plans.length === 0) {
+        refuses.push({ champ, raison: "Valeur vide" });
+      } else if (inconnus.length > 0) {
+        refuses.push({
+          champ,
+          raison: `Plan inconnu : ${inconnus.join(", ")}. Valeurs possibles : ${PLANS_AUTORISES.join(", ")}`,
+        });
+      } else {
+        update.plans = [...new Set(plans)];
+        remplis.push(champ);
+      }
+      continue;
+    }
+    if (Array.isArray(brut)) {
+      refuses.push({ champ, raison: "Ce champ attend un texte, pas une liste" });
+      continue;
+    }
+    const valeur = brut.trim();
+    if (valeur === "") {
+      refuses.push({ champ, raison: "Valeur vide" });
     } else {
-      update[champ as Champ] = valeur;
+      update[champ as Exclude<Champ, "plans">] = valeur;
       remplis.push(champ);
     }
   }
@@ -208,7 +237,7 @@ async function completerFil(agent: string, params: z.infer<typeof schemas.comple
         ligne_id: params.id,
         champ,
         avant: null,
-        apres: update[champ as Champ] ?? null,
+        apres: [update[champ as Champ] ?? ""].flat().join(", ") || null,
       });
     }
   }

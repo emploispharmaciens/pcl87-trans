@@ -33,6 +33,45 @@ export const FAMILY_LABELS: Record<string, string> = {
   accessoire: "Accessoire (pas un fil)",
 };
 
+/**
+ * Couleur de chaque famille. Elle reprend, quand c'est possible, la teinte réelle
+ * du fil : violet pour les résorbables tressés, bleu pour les monobrins non
+ * résorbables, vert pour les polyesters tressés.
+ */
+export const FAMILY_COLORS: Record<string, string> = {
+  resorbable_tresse: "#7c3aed",
+  resorbable_monobrin: "#0891b2",
+  non_resorbable_monobrin: "#2563eb",
+  non_resorbable_tresse: "#16a34a",
+  haute_resistance: "#ea580c",
+  agrafe_cutanee: "#475569",
+  accessoire: "#a8a29e",
+};
+
+export function familyColor(famille: string | null | undefined): string {
+  return FAMILY_COLORS[famille ?? ""] ?? "#9ca3af";
+}
+
+/** Plans de suture : où le fil est utilisé. Plusieurs plans possibles par fil. */
+export const PLANS = ["os", "tendon_ligament", "profond", "sous_cutane", "peau"] as const;
+export type Plan = (typeof PLANS)[number];
+
+export const PLAN_LABELS: Record<string, string> = {
+  os: "Os et cerclage",
+  tendon_ligament: "Tendon et ligament",
+  profond: "Plan profond",
+  sous_cutane: "Sous-cutané",
+  peau: "Peau",
+};
+
+export const PLAN_ICONS: Record<string, string> = {
+  os: "bi-diagram-2",
+  tendon_ligament: "bi-bezier",
+  profond: "bi-layers",
+  sous_cutane: "bi-layers-half",
+  peau: "bi-bandaid",
+};
+
 export const FAMILY_SHORT: Record<string, string> = {
   resorbable_tresse: "Résorbable tressé",
   resorbable_monobrin: "Résorbable mono",
@@ -174,6 +213,7 @@ export type SutureInput = {
   couleur: string | null;
   usage_notes: string | null;
   note_qualite: string | null;
+  plans: string[] | null;
   statut: string;
 };
 

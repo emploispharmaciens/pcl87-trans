@@ -6,13 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { SutureForm } from "@/components/SutureForm";
+import { FamilyBadge, PlanChips } from "@/components/SutureVisuals";
 import { useSutureImageUrls } from "@/hooks/useSutureImageUrls";
 import { useAuth } from "@/hooks/useAuth";
 import {
   FAMILY_LABELS,
   FAMILY_SHORT,
+  PLANS,
+  PLAN_ICONS,
+  PLAN_LABELS,
   SUTURE_FAMILIES,
   createSuture,
+  familyColor,
   fetchSutureImages,
   fetchSutures,
   isIncomplete,
@@ -49,20 +54,30 @@ function Chip({
   active,
   onClick,
   children,
+  color,
 }: {
   active: boolean;
   onClick: () => void;
   children: React.ReactNode;
+  color?: string | undefined;
 }) {
+  const style = color
+    ? active
+      ? { backgroundColor: color, color: "#fff" }
+      : { backgroundColor: `${color}1a`, color }
+    : undefined;
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`rounded-full px-3 py-1 text-xs font-semibold uppercase transition ${
-        active
-          ? "bg-module-strong text-primary-foreground"
-          : "bg-muted text-muted-foreground hover:text-module-text"
+      style={style}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase transition ${
+        color
+          ? "hover:opacity-90"
+          : active
+            ? "bg-module-strong text-primary-foreground"
+            : "bg-muted text-muted-foreground hover:text-module-text"
       }`}
     >
       {children}
@@ -82,7 +97,8 @@ function SutureCard({
     <Link
       to="/sutures/fil/$slug"
       params={{ slug: suture.slug ?? "" }}
-      className="module-card block p-4 transition hover:border-module-strong"
+      className="module-card block border-l-4 p-4 transition hover:shadow-md"
+      style={{ borderLeftColor: familyColor(suture.famille) }}
     >
       <div className="flex items-start justify-between gap-3">
         {photoUrl ? (
@@ -115,9 +131,8 @@ function SutureCard({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2 text-xs font-medium">
-        <span className="rounded-full bg-module-strong/10 px-2 py-0.5 uppercase text-module-strong">
-          {FAMILY_SHORT[suture.famille ?? ""] ?? "Famille [NON DÉFINI]"}
-        </span>
+        <FamilyBadge famille={suture.famille} short />
+        <PlanChips plans={suture.plans} />
         {suture.calibre ? (
           <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
             Calibre {suture.calibre}
@@ -149,6 +164,7 @@ function SutureCard({
 function SuturesList() {
   const [search, setSearch] = useState("");
   const [families, setFamilies] = useState<SutureFamily[]>([]);
+  const [plans, setPlans] = useState<string[]>([]);
   const [onlyUsed, setOnlyUsed] = useState(false);
   const [onlyIncomplete, setOnlyIncomplete] = useState(false);
 
@@ -197,10 +213,11 @@ function SuturesList() {
     return rows
       .filter((s) => matchesSuture(s, search))
       .filter((s) => families.length === 0 || families.includes((s.famille ?? "") as SutureFamily))
+      .filter((s) => plans.length === 0 || plans.some((p) => (s.plans ?? []).includes(p)))
       .filter((s) => !onlyUsed || s.usages.length > 0)
       .filter((s) => !onlyIncomplete || isIncomplete(s))
       .sort((a, b) => b.usages.length - a.usages.length);
-  }, [sutures, search, families, onlyUsed, onlyIncomplete]);
+  }, [sutures, search, families, plans, onlyUsed, onlyIncomplete]);
 
   const grouped = useMemo(() => {
     const map = new Map<string, SutureWithUsage[]>();
@@ -213,6 +230,10 @@ function SuturesList() {
       return rows ? [[f, rows] as const] : [];
     });
   }, [filtered]);
+
+  function togglePlan(plan: string) {
+    setPlans((prev) => (prev.includes(plan) ? prev.filter((p) => p !== plan) : [...prev, plan]));
+  }
 
   function toggleFamily(family: SutureFamily) {
     setFamilies((prev) =>
@@ -245,8 +266,18 @@ function SuturesList() {
               key={family}
               active={families.includes(family)}
               onClick={() => toggleFamily(family)}
+              color={familyColor(family)}
             >
               {FAMILY_SHORT[family]}
+            </Chip>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {PLANS.map((plan) => (
+            <Chip key={plan} active={plans.includes(plan)} onClick={() => togglePlan(plan)}>
+              <i className={`bi ${PLAN_ICONS[plan]}`} aria-hidden="true" />
+              {PLAN_LABELS[plan]}
             </Chip>
           ))}
         </div>
@@ -283,7 +314,15 @@ function SuturesList() {
 
         {grouped.map(([family, rows]) => (
           <section key={family}>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <h2
+              className="mb-3 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide"
+              style={{ color: familyColor(family) }}
+            >
+              <span
+                className="h-3 w-3 rounded-full"
+                style={{ backgroundColor: familyColor(family) }}
+                aria-hidden="true"
+              />
               {FAMILY_LABELS[family]} · {rows.length}
             </h2>
             <div className="space-y-3">

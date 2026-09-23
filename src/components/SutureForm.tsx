@@ -13,6 +13,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
   FAMILY_LABELS,
+  PLANS,
+  PLAN_LABELS,
   STATUT_ACTIF,
   STATUT_LABELS,
   STATUT_RETIRE,
@@ -22,7 +24,7 @@ import {
   type SutureInput,
 } from "@/lib/sutures-api";
 
-type FormValues = Record<keyof SutureInput, string>;
+type FormValues = Record<Exclude<keyof SutureInput, "plans">, string> & { plans: string[] };
 
 const EMPTY: FormValues = {
   marque: "",
@@ -35,6 +37,7 @@ const EMPTY: FormValues = {
   couleur: "",
   usage_notes: "",
   note_qualite: "",
+  plans: [],
   statut: STATUT_ACTIF,
 };
 
@@ -51,6 +54,7 @@ function toValues(suture?: Suture | null): FormValues {
     couleur: suture.couleur ?? "",
     usage_notes: suture.usage_notes ?? "",
     note_qualite: suture.note_qualite ?? "",
+    plans: suture.plans ?? [],
     statut: suture.statut ?? STATUT_ACTIF,
   };
 }
@@ -68,6 +72,7 @@ function toInput(values: FormValues): SutureInput {
     couleur: cleanField(values.couleur),
     usage_notes: cleanField(values.usage_notes),
     note_qualite: cleanField(values.note_qualite),
+    plans: values.plans.length > 0 ? values.plans : null,
     statut: values.statut || STATUT_ACTIF,
   };
 }
@@ -81,7 +86,11 @@ type Props = {
   onSubmit: (input: SutureInput) => void;
 };
 
-const TEXT_FIELDS: { key: keyof SutureInput; label: string; placeholder?: string }[] = [
+const TEXT_FIELDS: {
+  key: Exclude<keyof SutureInput, "plans">;
+  label: string;
+  placeholder?: string;
+}[] = [
   { key: "composition", label: "Composition" },
   { key: "reference", label: "Référence" },
   { key: "type_aiguille", label: "Type d'aiguille", placeholder: "Ex. Aiguille 1/2 26mm TR" },
@@ -104,8 +113,17 @@ export function SutureForm({ open, onOpenChange, suture, loading, onSubmit }: Pr
     }
   }, [open, suture]);
 
-  function set(key: keyof SutureInput, value: string) {
+  function set(key: Exclude<keyof SutureInput, "plans">, value: string) {
     setValues((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function togglePlan(plan: string) {
+    setValues((prev) => ({
+      ...prev,
+      plans: prev.plans.includes(plan)
+        ? prev.plans.filter((p) => p !== plan)
+        : [...prev.plans, plan],
+    }));
   }
 
   function handleSubmit(event: FormEvent) {
@@ -165,6 +183,26 @@ export function SutureForm({ open, onOpenChange, suture, loading, onSubmit }: Pr
               ))}
             </select>
           </div>
+
+          <fieldset className="space-y-1.5">
+            <legend className="text-sm font-medium">Plans de suture</legend>
+            <div className="flex flex-wrap gap-2">
+              {PLANS.map((plan) => (
+                <label
+                  key={plan}
+                  className="flex cursor-pointer items-center gap-2 rounded-full border border-border px-3 py-1.5 text-sm has-[:checked]:border-module-strong has-[:checked]:bg-module-strong/10"
+                >
+                  <input
+                    type="checkbox"
+                    className="accent-current"
+                    checked={values.plans.includes(plan)}
+                    onChange={() => togglePlan(plan)}
+                  />
+                  {PLAN_LABELS[plan]}
+                </label>
+              ))}
+            </div>
+          </fieldset>
 
           {TEXT_FIELDS.map((field) => (
             <div key={field.key} className="space-y-1.5">

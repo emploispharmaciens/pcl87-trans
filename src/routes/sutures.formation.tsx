@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { CardSkeleton } from "@/components/DataStates";
-import { FAMILY_LABELS, fetchProtocoles, fetchSutures } from "@/lib/sutures-api";
+import { FAMILY_LABELS, familyColor, fetchProtocoles, fetchSutures } from "@/lib/sutures-api";
 import {
   ETAPES,
   FAB_FAMILLES,
@@ -192,9 +192,12 @@ function Formation() {
               return (
                 <article
                   key={fiche.famille}
-                  className="rounded-lg border border-border p-4 text-sm"
+                  className="rounded-lg border border-l-4 border-border p-4 text-sm"
+                  style={{ borderLeftColor: familyColor(fiche.famille) }}
                 >
-                  <h3 className="mb-2 font-semibold">{FAMILY_LABELS[fiche.famille]}</h3>
+                  <h3 className="mb-2 font-semibold" style={{ color: familyColor(fiche.famille) }}>
+                    {FAMILY_LABELS[fiche.famille]}
+                  </h3>
                   <p>
                     <strong>C'est :</strong> {fiche.f}
                   </p>

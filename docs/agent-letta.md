@@ -25,7 +25,19 @@ La base n'en garde qu'une empreinte.
 - `lister_fils` : tous les fils, avec leurs cases vides et leur nombre de photos.
 - `lire_fil` : `{ "id": "..." }` ou `{ "slug": "..." }`.
 - `completer_fil` : `{ "id": "...", "champs": { "composition": "...", "cours": "..." } }`.
-  Champs autorisés : composition, couleur, type_aiguille, longueur, reference, usage_notes, note_qualite, cours.
+  Champs autorisés : composition, couleur, type_aiguille, longueur, reference, usage_notes, note_qualite, cours, plans.
+  `plans` est une liste parmi : os, tendon_ligament, profond, sous_cutane, peau. Ex. `"plans": ["profond", "sous_cutane"]`.
+
+## Format du cours d'un fil
+
+Une idée par ligne, séparée par un saut de ligne (`\n`). L'appli met en forme chaque ligne :
+
+- ligne 1 : ce qu'est le fil (affichée en accroche) ;
+- une ligne qui parle du sachet (« Le sachet… ») : affichée sous « Le reconnaître » ;
+- une ligne sur l'usage au bloc (« Au bloc, il sert… ») : affichée sous « Au bloc » ;
+- une ligne sur la résorption ou le retrait : affichée sous « Dans l'organisme » ;
+- une ligne « Piège : … » : affichée en encadré d'alerte ;
+- dernière ligne « Source : … » : affichée en petit, en bas.
 - `ajouter_photo` : `{ "id": "...", "url": "https://...", "source": "d'où vient l'image" }`. 6 photos au maximum par fil.
 - `lire_formation` : contenu de la formation, bloc par bloc.
 - `completer_formation` :
