@@ -61,6 +61,23 @@ Objectif : remplacer toutes les variantes par un nom canonique unique.
 
 HS FIBER 0 : produit arrêté. Ne pas le remplacer : attendre l'équivalence fournie par le chirurgien.
 
+## Règles d'aiguille quand la fiche de picking ne la précise pas (ou cite une aiguille absente)
+
+- DAFILON 2/0 sans aiguille → DAFILON 2/0 aiguille 21 mm.
+- DAFILON 3/0 sans aiguille → DAFILON 3/0 aiguille 24 mm.
+- Aiguille citée qui n'existe dans aucune fiche du fil : on tranche au cas par cas selon l'usage
+  - fixation d'un redon → aiguille 30 mm ;
+  - fermeture cutanée → aiguille 24 mm ;
+  - Dr Louisia → aiguille 16 mm.
+
+## Fils cités dans les fiches de picking mais hors service
+
+POLYSORB 3/0 et POLYSORB 1 sont hors service (arbitrage définitif). Toute citation dans une fiche de picking est une erreur de fiche : aucun lien n'est créé vers ces fils.
+
+## Produits cités sans fiche du fil (création reportée)
+
+PDS 2/0 · Caprosyn · Caprosyn 2/0 · Monosof 1 · Sutortho · Suture Link · Fil d'acier 1/125.
+
 ## Fils propres à un chirurgien
 
 - VICRYL RAPIDE 3/0 : essentiellement Dr Dotzis.
