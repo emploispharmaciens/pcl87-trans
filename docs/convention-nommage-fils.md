@@ -63,10 +63,13 @@ HS FIBER 0 : produit arrêté. Ne pas le remplacer : attendre l'équivalence fou
 
 ## Règles d'aiguille quand la fiche de picking ne la précise pas (ou cite une aiguille absente)
 
+Ces règles sont des **repères, pas des murs**. Elles servent à faire vivre les fiches et la base, et évoluent avec elles.
+Ordre de confiance : **ce que dit la fiche de picking** (si le produit existe) > **l'habitude du chirurgien** > le repère ci-dessous.
+
 - DAFILON 2/0 sans aiguille → DAFILON 2/0 aiguille 21 mm.
 - DAFILON 3/0 sans aiguille → DAFILON 3/0 aiguille 24 mm.
 - Aiguille citée qui n'existe dans aucune fiche du fil : on tranche au cas par cas selon l'usage
-  - fixation d'un redon → aiguille 30 mm ;
+  - fixation d'un redon → aiguille 30 mm (dépend d'abord de l'habitude du chirurgien) ;
   - fermeture cutanée → aiguille 24 mm ;
   - Dr Louisia → aiguille 16 mm.
 

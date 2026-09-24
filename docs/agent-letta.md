@@ -59,7 +59,7 @@ Une idée par ligne, séparée par un saut de ligne (`\n`). L'appli met en forme
 - une ligne « Piège : … » : affichée en encadré d'alerte ;
 - dernière ligne « Source : … » : affichée en petit, en bas.
 - `ajouter_photo` : `{ "id": "...", "url": "https://...", "source": "d'où vient l'image" }`. 6 photos au maximum par fil.
-- `trouver_fil` : `{ "nom": "Polysorb 2/0 petite aiguille" }` → correspondances exactes puis proches (noms des fils et noms de terrain).
+- `trouver_fil` : `{ "nom": "3 polysord 2 GA 48mm", "chirurgien": "Dr Coste" }` → lit l'écriture selon la convention et renvoie `lecture.statut` (exact, probable, ambigu, hors_service, inconnu, pas_un_fil), `lecture.meilleur`, `lecture.alternatives` avec leurs raisons, et un `conseil`. Ne relie que sur « exact » ou « probable ».
 - `ajouter_nom_terrain` : `{ "id": "<fil>", "nom": "...", "source": "fiche de picking + phrase" }`.
 - `creer_fil` : `{ "marque": "POLYSORB 3/0", "calibre": "3/0", "famille": "resorbable_tresse", "source": "...", "champs": { ... } }`.
 - `lister_protocoles`, `lire_protocole` (`{ "id" }` ou `{ "slug" }`).

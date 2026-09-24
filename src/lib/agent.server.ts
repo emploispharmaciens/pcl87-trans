@@ -8,6 +8,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { evaluerFiche } from "@/lib/sutures-completude";
+import { resoudreEcriture } from "@/lib/sutures-resolution";
 import {
   MAX_SUTURE_PHOTOS,
   SUTURE_BUCKET,
@@ -151,7 +152,7 @@ const AIDE = {
     completer_fil: `Remplit des cases vides d'un fil. Paramètres : id, champs (objet). Champs autorisés : ${CHAMPS_COMPLETABLES.join(", ")}. « plans » est une liste parmi : ${PLANS_AUTORISES.join(", ")}.`,
     ajouter_photo: `Ajoute une photo depuis une adresse https. Paramètres : id, url, source (texte obligatoire : d'où vient l'image). ${MAX_SUTURE_PHOTOS} photos au maximum par fil.`,
     trouver_fil:
-      "Retrouve un fil à partir de ce qui est écrit dans une fiche de picking. Paramètre : nom. Cherche dans les noms des fils et dans leurs noms de terrain. Renvoie les correspondances exactes puis proches.",
+      "Lit une écriture de fiche de picking selon la convention (quantités, PA/GA, fautes, « 2-0 », aiguille, référence) et classe les fils possibles. Paramètres : nom (l'écriture exacte), chirurgien (facultatif, ex. « Dr Louisia »). Renvoie un statut (exact, probable, ambigu, hors_service, inconnu, pas_un_fil), le meilleur fil, les alternatives et les raisons.",
     ajouter_nom_terrain:
       "Rattache une écriture de fiche de picking à un fil. Paramètres : id (du fil), nom, source. Refusé si ce nom est déjà rattaché.",
     creer_fil:
@@ -212,7 +213,10 @@ const schemas = {
     url: z.string().url().max(2000),
     source: z.string().min(3).max(500),
   }),
-  trouver_fil: z.object({ nom: z.string().min(1).max(200) }),
+  trouver_fil: z.object({
+    nom: z.string().min(1).max(500),
+    chirurgien: z.string().max(100).optional(),
+  }),
   ajouter_nom_terrain: z.object({
     id: z.string().uuid(),
     nom: z.string().min(1).max(200),
@@ -619,30 +623,26 @@ async function completerFormation(
 
 async function trouverFil(params: z.infer<typeof schemas.trouver_fil>) {
   const db = await admin();
-  const cible = normaliser(params.nom);
   const [{ data: fils }, { data: noms }] = await Promise.all([
-    db.from("sutures").select("id, slug, marque, calibre, famille, statut"),
+    db
+      .from("sutures")
+      .select("id, slug, marque, calibre, famille, statut, type_aiguille, reference"),
     db.from("suture_noms").select("suture_id, nom"),
   ]);
-  const parId = new Map((fils ?? []).map((f) => [f.id, f]));
-  const exacts = new Map<string, { fil: unknown; via: string }>();
-  const proches = new Map<string, { fil: unknown; via: string }>();
-  for (const f of fils ?? []) {
-    const n = normaliser(f.marque ?? "");
-    if (n === cible) exacts.set(f.id, { fil: f, via: "nom du fil" });
-    else if (n && (n.includes(cible) || cible.includes(n)))
-      proches.set(f.id, { fil: f, via: "nom du fil" });
-  }
-  for (const nom of noms ?? []) {
-    const f = parId.get(nom.suture_id);
-    if (!f) continue;
-    const n = normaliser(nom.nom);
-    if (n === cible) exacts.set(f.id, { fil: f, via: `nom de terrain « ${nom.nom} »` });
-    else if (!exacts.has(f.id) && (n.includes(cible) || cible.includes(n)))
-      proches.set(f.id, { fil: f, via: `nom de terrain « ${nom.nom} »` });
-  }
-  for (const id of exacts.keys()) proches.delete(id);
-  return { exacts: [...exacts.values()], proches: [...proches.values()] };
+  const lecture = resoudreEcriture(params.nom, fils ?? [], noms ?? [], params.chirurgien ?? null);
+  return {
+    lecture,
+    conseil:
+      lecture.statut === "exact" || lecture.statut === "probable"
+        ? "Utilise « meilleur ». Si l'écriture est nouvelle, ajoute-la en nom de terrain."
+        : lecture.statut === "ambigu"
+          ? "Plusieurs fils possibles : ne relie pas, signale la ligne à Manu."
+          : lecture.statut === "hors_service"
+            ? "Fil hors service : erreur de fiche de picking, ne crée aucun lien."
+            : lecture.statut === "pas_un_fil"
+              ? "Ce n'est pas un fil : ignore la ligne."
+              : "Aucun fil connu : signale la ligne à Manu, ne crée rien.",
+  };
 }
 
 async function ajouterNomTerrain(
