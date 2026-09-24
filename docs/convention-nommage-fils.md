@@ -8,7 +8,10 @@ Objectif : remplacer toutes les variantes par un nom canonique unique.
 **Format canonique : `MARQUE CALIBRE [Aiguille <courbure> <longueur mm>]`**
 
 - MARQUE : nom du fabricant/produit en MAJUSCULES (ex. DAFILON, POLYSORB, VICRYL RAPIDE).
-- CALIBRE : format USP avec « /0 » (ex. 2/0, 3/0) — jamais « 2-0 », « 2,5 », « X-1 ». Une écriture humaine comme « 1-0 » exprime « 1/0 » : on corrige l'écriture, sans rien inventer. En cas de doute : on demande, puis on fixe la convention.
+- CALIBRE : le calibre réel du produit, tel qu'il est imprimé sur la boîte.
+  - Fil : format USP avec « /0 » (ex. 2/0, 3/0, 0, 2, 5). Une écriture humaine comme « 2-0 » ou « 1-0 » exprime « 2/0 » ou « 1/0 » : on corrige l'écriture, sans rien inventer.
+  - Ruban (tape) ou boucle : la largeur en millimètres, avec une virgule (ex. « 2,2 mm »).
+  - En cas de doute : on demande, puis on fixe la convention.
 - Aiguille : seulement si elle distingue deux fiches du même fil (ex. DAFILON 2/0 existe en 21 mm et 30 mm).
 - Raccourcis humains à éliminer : PA / GA (petite / grande aiguille), « aig », « aig droite », « grande aiguille », « petite aiguille », fautes (Vycril, Polysord, Mersuture).
 - Agrafeuse : dans les anciennes fiches, « Agrafeuse » seule désigne le modèle par défaut, la 35W. La 35R était toujours précisée. Désormais, la taille est toujours écrite.
@@ -25,6 +28,8 @@ Objectif : remplacer toutes les variantes par un nom canonique unique.
 | Polysorb 0 CL927 · Polysorb 0 PA 36 | POLYSORB 0 | polysorb-0 |
 | Polysorb 2/0 SL612 · Polysorb 2/0 petite aiguille | POLYSORB 2/0 | polysorb-2-0 |
 | Polysorb 1 CL-918 · Polysorb 1-0 | POLYSORB 1/0 (CL-918) | — |
+| HS 2 | HS FIBER 2 | hs-fiber-2 |
+| HS 5 | HS FIBER 5 | hs-fiber-5 |
 | Dafilon 3/0 aig 24 | DAFILON 3/0 (AIG 24MM) | dafilon-3-0-aig-24 |
 | Dafilon 2/0 aig 30 | DAFILON 2/0 (AIG 30MM) | dafilon-2-0-aig-30 |
 | Dafilon 2/0 (Aig 21mm) · Dafilon 2/0 (pour le redon) | DAFILON 2/0 | dafilon-2-0-aig-21 |
@@ -35,6 +40,20 @@ Objectif : remplacer toutes les variantes par un nom canonique unique.
 | Monocryl 3/0 | MONOCRYL 3/0 | monocryl-3-0 |
 | Agrafeuse (sans taille) | AGRAFEUSE CUTANÉE 35W | agrafeuse-35w |
 | Agrafeuse 35R | AGRAFEUSE CUTANÉE 35R | agrafeuse-35r |
+
+## Stock HS FIBER (Riverpoint Medical LLC, distribué par Ortho AM Medical GmbH)
+
+« HS » dans les fiches de picking = HS FIBER.
+
+| Produit | Référence | Fiche du fil |
+|---|---|---|
+| HS FIBER 2 | HS158 | hs-fiber-2 |
+| HS FIBER 5 | HS502 | hs-fiber-5 |
+| HS FIBER TAPE 2,2 mm | HS523 | hs-fiber-tape-2-2-mm |
+| HS FIBER LOOP 2,2 mm | HS524 | hs-fiber-loop-2-2-mm |
+| SutUp | HS1002-MU, HS1013-MU, HS134-MU, HS959-MU, HS960-MU | sutup-… |
+
+HS FIBER 0 : produit arrêté. Ne pas le remplacer : attendre l'équivalence fournie par le chirurgien.
 
 ## Fils propres à un chirurgien
 
