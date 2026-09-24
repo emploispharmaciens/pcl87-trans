@@ -32,7 +32,7 @@ Objectif : remplacer toutes les variantes par un nom canonique unique.
 | HS 5 | HS FIBER 5 | hs-fiber-5 |
 | Dafilon 3/0 aig 24 | DAFILON 3/0 (AIG 24MM) | dafilon-3-0-aig-24 |
 | Dafilon 2/0 aig 30 | DAFILON 2/0 (AIG 30MM) | dafilon-2-0-aig-30 |
-| Dafilon 2/0 (Aig 21mm) · Dafilon 2/0 (pour le redon) | DAFILON 2/0 | dafilon-2-0-aig-21 |
+| Dafilon 2/0 (Aig 21mm) · Dafilon 2/0 (pour le redon) · Flexo 2.5 · Flexocrin 2,5 | DAFILON 2/0 | dafilon-2-0-aig-21 |
 | Prémicron 1 aig droite | PREMICRON 1 aiguille droite | premicron-aig-droite |
 | PDS 3/0 | PDS II 3/0 | pds-2-3-0 |
 | Mersuture ×3 | MERSILENE 3 | mersilene-3 |
@@ -55,7 +55,9 @@ Objectif : remplacer toutes les variantes par un nom canonique unique.
 
 ## Fils hors service
 
-- FLEXOCRIN (écrit « Flexo 2/0 », « Flexo 2.5 », « Flexocrin 2,5 ») : hors service, remplacé par ses équivalents Dafilon.
+- FLEXOCRIN : hors service, remplacé par ses équivalents Dafilon.
+  - « Flexo 2.5 », « Flexo 2,5 », « Flexocrin 2,5 » (USP 2/0) → DAFILON 2/0 aiguille 21 mm (dafilon-2-0-aig-21).
+  - « Flexo 2/0 » : équivalence à préciser.
 
 HS FIBER 0 : produit arrêté. Ne pas le remplacer : attendre l'équivalence fournie par le chirurgien.
 
