@@ -179,6 +179,11 @@ function SuturesByIntervention() {
                                 >
                                   {f.suture.marque}
                                 </Link>
+                                {f.suture.statut === "retire" ? (
+                                  <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold uppercase text-muted-foreground">
+                                    Hors service
+                                  </span>
+                                ) : null}
                                 {f.quantite ? (
                                   <span className="font-semibold">{f.quantite}</span>
                                 ) : null}

@@ -1,3 +1,4 @@
+import { evaluerFiche } from "@/lib/sutures-completude";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -296,8 +297,9 @@ export function matchesSuture(
     .some((field) => normalize(String(field)).includes(q));
 }
 
-export function isIncomplete(suture: Suture): boolean {
-  return !suture.calibre || !suture.composition || !suture.reference;
+/** Fiche en service avec au moins une case à compléter qui a un sens pour ce fil. */
+export function isIncomplete(suture: Suture & { usages?: unknown[] }): boolean {
+  return evaluerFiche(suture, suture.usages?.length ?? 0).casesManquantes.length > 0;
 }
 
 /* ------------------------------------------------------------------ */

@@ -42,7 +42,7 @@ Revenir au niveau par défaut : même requête avec `'completer'`.
 ## Actions
 
 - `aide` : mode d'emploi renvoyé par l'appli.
-- `lister_fils` : tous les fils, avec leurs cases vides et leur nombre de photos.
+- `lister_fils` : tous les fils. `cases_a_completer` = cases vides qui ont un sens pour ce fil. `cases_sans_objet` = cases vides sans objet (aiguille d'une agrafe, plan d'un accessoire, note d'usage d'un fil relié à aucun protocole) : ne pas les remplir. Un fil hors service n'a rien à compléter.
 - `lire_fil` : `{ "id": "..." }` ou `{ "slug": "..." }`.
 - `completer_fil` : `{ "id": "...", "champs": { "composition": "...", "cours": "..." } }`.
   Champs autorisés : composition, couleur, type_aiguille, longueur, reference, usage_notes, note_qualite, cours, plans.

@@ -197,6 +197,14 @@ function SuturesList() {
   }, [allImages]);
   const { data: photoUrls } = useSutureImageUrls([...mainPhotos.values()]);
 
+  const completude = useMemo(() => {
+    const enService = (sutures ?? []).filter((s) => s.statut !== "retire");
+    return {
+      enService: enService.length,
+      completes: enService.filter((s) => !isIncomplete(s)).length,
+    };
+  }, [sutures]);
+
   const { isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -300,6 +308,12 @@ function SuturesList() {
       <p className="mt-4 text-sm text-muted-foreground">
         {filtered.length} fil{filtered.length > 1 ? "s" : ""} affiché
         {filtered.length > 1 ? "s" : ""} sur {(sutures ?? []).length}.
+        {completude.enService > 0 ? (
+          <>
+            {" "}
+            Fiches complètes : {completude.completes} sur {completude.enService} en service.
+          </>
+        ) : null}
       </p>
 
       <div className="mt-4 space-y-8">

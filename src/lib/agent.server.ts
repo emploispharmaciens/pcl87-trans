@@ -7,6 +7,7 @@
  */
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { evaluerFiche } from "@/lib/sutures-completude";
 import {
   MAX_SUTURE_PHOTOS,
   SUTURE_BUCKET,
@@ -144,7 +145,8 @@ const AIDE = {
   ],
   actions: {
     aide: "Affiche ce mode d'emploi.",
-    lister_fils: "Liste les fils, avec leurs cases vides et leur nombre de photos.",
+    lister_fils:
+      "Liste les fils. « cases_a_completer » = les cases vides qui ont un sens pour ce fil. « cases_sans_objet » = vides mais sans objet (ex. l'aiguille d'une agrafe) : ne les remplis pas. Un fil hors service n'a rien à compléter.",
     lire_fil: "Détail d'un fil. Paramètre : id ou slug.",
     completer_fil: `Remplit des cases vides d'un fil. Paramètres : id, champs (objet). Champs autorisés : ${CHAMPS_COMPLETABLES.join(", ")}. « plans » est une liste parmi : ${PLANS_AUTORISES.join(", ")}.`,
     ajouter_photo: `Ajoute une photo depuis une adresse https. Paramètres : id, url, source (texte obligatoire : d'où vient l'image). ${MAX_SUTURE_PHOTOS} photos au maximum par fil.`,
@@ -284,16 +286,22 @@ const schemas = {
 
 async function listerFils() {
   const db = await admin();
-  const [{ data: fils, error }, { data: images }] = await Promise.all([
+  const [{ data: fils, error }, { data: images }, { data: liens }] = await Promise.all([
     db
       .from("sutures")
       .select(`id, slug, marque, calibre, famille, statut, ${CHAMPS_COMPLETABLES.join(", ")}`)
       .order("marque"),
     db.from("content_images").select("content_id").eq("content_type_code", SUTURE_CONTENT_TYPE),
+    db.from("suture_protocoles").select("suture_id"),
   ]);
   if (error) throw new Error(error.message);
   return (fils ?? []).map((f) => {
     const row = f as unknown as Record<string, unknown>;
+    const nbProtocoles = (liens ?? []).filter((l) => l.suture_id === row["id"]).length;
+    const evaluation = evaluerFiche(
+      row as { famille: string | null; statut: string | null },
+      nbProtocoles,
+    );
     return {
       id: row["id"],
       slug: row["slug"],
@@ -302,6 +310,10 @@ async function listerFils() {
       famille: row["famille"],
       statut: row["statut"],
       cases_vides: CHAMPS_COMPLETABLES.filter((c) => estVide(row[c])),
+      cases_a_completer: evaluation.casesManquantes,
+      cases_sans_objet: evaluation.casesSansObjet,
+      complet: evaluation.complete,
+      nb_protocoles: nbProtocoles,
       nb_photos: (images ?? []).filter((i) => i.content_id === row["id"]).length,
     };
   });
@@ -327,9 +339,16 @@ async function lireFil(params: z.infer<typeof schemas.lire_fil>) {
       .order("position"),
   ]);
   const row = fil as unknown as Record<string, unknown>;
+  const evaluation = evaluerFiche(
+    row as { famille: string | null; statut: string | null },
+    (liens ?? []).length,
+  );
   return {
     fil,
     cases_vides: CHAMPS_COMPLETABLES.filter((c) => estVide(row[c])),
+    cases_a_completer: evaluation.casesManquantes,
+    cases_sans_objet: evaluation.casesSansObjet,
+    complet: evaluation.complete,
     interventions: liens ?? [],
     photos: images ?? [],
   };

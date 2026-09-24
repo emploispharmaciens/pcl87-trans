@@ -53,6 +53,10 @@ Objectif : remplacer toutes les variantes par un nom canonique unique.
 | HS FIBER LOOP 2,2 mm | HS524 | hs-fiber-loop-2-2-mm |
 | SutUp | HS1002-MU, HS1013-MU, HS134-MU, HS959-MU, HS960-MU | sutup-… |
 
+## Fils hors service
+
+- FLEXOCRIN (écrit « Flexo 2/0 », « Flexo 2.5 », « Flexocrin 2,5 ») : hors service, remplacé par ses équivalents Dafilon.
+
 HS FIBER 0 : produit arrêté. Ne pas le remplacer : attendre l'équivalence fournie par le chirurgien.
 
 ## Fils propres à un chirurgien

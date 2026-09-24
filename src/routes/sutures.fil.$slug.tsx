@@ -8,6 +8,7 @@ import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { SutureForm } from "@/components/SutureForm";
 import { SuturePhotos } from "@/components/SuturePhotos";
 import { AValider } from "@/components/AValider";
+import { CHAMP_LABELS, evaluerFiche } from "@/lib/sutures-completude";
 import { CoursRendu, FamilyBadge, PlanChips } from "@/components/SutureVisuals";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -123,6 +124,7 @@ function SutureFiche() {
   });
 
   const linkCount = suture?.usages.length ?? 0;
+  const manquantes = suture ? evaluerFiche(suture, suture.usages.length).casesManquantes : [];
 
   return (
     <main className="mx-auto max-w-4xl px-4 py-6">
@@ -295,6 +297,14 @@ function SutureFiche() {
               <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                 Gestion (admin)
               </h2>
+              {manquantes.length > 0 ? (
+                <p className="text-sm">
+                  <span className="font-semibold">À compléter :</span>{" "}
+                  {manquantes.map((c) => CHAMP_LABELS[c]).join(", ")}.
+                </p>
+              ) : !isRetired(suture) ? (
+                <p className="text-sm text-muted-foreground">Fiche complète.</p>
+              ) : null}
               <div className="flex flex-wrap gap-2">
                 <Button onClick={() => setEditOpen(true)}>
                   <i className="bi bi-pencil" aria-hidden="true" />
