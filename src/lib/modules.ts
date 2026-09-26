@@ -45,15 +45,6 @@ export const MODULES: ModuleDef[] = [
   {
     slug: "sutures",
     name: "Sutures",
-    description: "Les fils du bloc orthopédique : familles, calibres et usage par intervention.",
-    icon: "bi-bezier2",
-    family: "Savoir",
-    status: "actif",
-    path: "/sutures",
-  },
-  {
-    slug: "sutures",
-    name: "Sutures",
     description: "Les fils du bloc : famille, calibre, aiguille et usage par intervention.",
     icon: "bi-bezier2",
     family: "Pratique",
