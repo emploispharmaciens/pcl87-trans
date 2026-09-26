@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AuthGate } from "@/components/AuthGate";
 import { AppHeader } from "@/components/AppHeader";
 import { ModuleBanner } from "@/components/ModuleBanner";
+import { SUTURE_DISCLAIMER } from "@/lib/sutures-api";
 
 export const Route = createFileRoute("/sutures")({
   component: () => (
@@ -15,14 +16,10 @@ type Tab = { to: string; label: string; icon: string; exact?: boolean };
 
 const TABS: Tab[] = [
   { to: "/sutures", label: "Les fils", icon: "bi-bezier2", exact: true },
-  { to: "/sutures/interventions", label: "Protocoles", icon: "bi-clipboard2-pulse" },
+  { to: "/sutures/interventions", label: "Interventions", icon: "bi-clipboard2-pulse" },
 ];
 
-const FORMATION_TAB: Tab = { to: "/sutures/formation", label: "Formation", icon: "bi-mortarboard" };
-
 function SuturesLayout() {
-  const tabs = [...TABS, FORMATION_TAB];
-
   return (
     <div className="min-h-screen pb-20 sm:pb-0">
       <AppHeader />
@@ -32,9 +29,16 @@ function SuturesLayout() {
         subtitle="Référentiel des fils de suture en chirurgie orthopédique : familles, caractéristiques et usage par intervention."
       />
 
+      <div className="border-b border-border bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+        <p className="mx-auto flex max-w-4xl items-start gap-2">
+          <i className="bi bi-exclamation-triangle mt-0.5 shrink-0" aria-hidden="true" />
+          <span>{SUTURE_DISCLAIMER}</span>
+        </p>
+      </div>
+
       <nav className="hidden border-b border-border bg-card sm:block" aria-label="Sections sutures">
         <div className="mx-auto flex max-w-4xl gap-1 px-4">
-          {tabs.map((tab) => (
+          {TABS.map((tab) => (
             <Link
               key={tab.to}
               to={tab.to}
@@ -51,11 +55,10 @@ function SuturesLayout() {
       <Outlet />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 grid border-t border-border bg-card sm:hidden"
-        style={{ gridTemplateColumns: `repeat(${tabs.length}, minmax(0, 1fr))` }}
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-2 border-t border-border bg-card sm:hidden"
         aria-label="Sections sutures"
       >
-        {tabs.map((tab) => (
+        {TABS.map((tab) => (
           <Link
             key={tab.to}
             to={tab.to}
