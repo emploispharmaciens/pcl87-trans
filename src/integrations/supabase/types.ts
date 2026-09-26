@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_cles: {
+        Row: {
+          actif: boolean
+          cle_hash: string
+          created_at: string
+          id: string
+          last_used_at: string | null
+          niveau: string
+          nom: string
+        }
+        Insert: {
+          actif?: boolean
+          cle_hash: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          niveau?: string
+          nom: string
+        }
+        Update: {
+          actif?: boolean
+          cle_hash?: string
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          niveau?: string
+          nom?: string
+        }
+        Relationships: []
+      }
+      agent_journal: {
+        Row: {
+          action: string
+          agent: string
+          apres: string | null
+          avant: string | null
+          champ: string | null
+          created_at: string
+          id: string
+          ligne_id: string | null
+          table_cible: string
+        }
+        Insert: {
+          action: string
+          agent: string
+          apres?: string | null
+          avant?: string | null
+          champ?: string | null
+          created_at?: string
+          id?: string
+          ligne_id?: string | null
+          table_cible: string
+        }
+        Update: {
+          action?: string
+          agent?: string
+          apres?: string | null
+          avant?: string | null
+          champ?: string | null
+          created_at?: string
+          id?: string
+          ligne_id?: string | null
+          table_cible?: string
+        }
+        Relationships: []
+      }
       categories: {
         Row: {
           color: string
@@ -49,6 +115,39 @@ export type Database = {
           },
         ]
       }
+      chirurgiens: {
+        Row: {
+          a_valider: boolean
+          actif: boolean
+          created_at: string
+          id: string
+          initiales: string | null
+          nom: string
+          source: string | null
+          specialite: string | null
+        }
+        Insert: {
+          a_valider?: boolean
+          actif?: boolean
+          created_at?: string
+          id?: string
+          initiales?: string | null
+          nom: string
+          source?: string | null
+          specialite?: string | null
+        }
+        Update: {
+          a_valider?: boolean
+          actif?: boolean
+          created_at?: string
+          id?: string
+          initiales?: string | null
+          nom?: string
+          source?: string | null
+          specialite?: string | null
+        }
+        Relationships: []
+      }
       content_images: {
         Row: {
           content_id: string
@@ -56,6 +155,7 @@ export type Database = {
           created_at: string
           id: string
           position: number
+          source: string | null
           storage_path: string
         }
         Insert: {
@@ -64,6 +164,7 @@ export type Database = {
           created_at?: string
           id?: string
           position?: number
+          source?: string | null
           storage_path: string
         }
         Update: {
@@ -72,6 +173,7 @@ export type Database = {
           created_at?: string
           id?: string
           position?: number
+          source?: string | null
           storage_path?: string
         }
         Relationships: [
@@ -102,6 +204,87 @@ export type Database = {
           created_at?: string
           id?: string
           label?: string
+        }
+        Relationships: []
+      }
+      fils_equivalences: {
+        Row: {
+          calibre: string
+          created_at: string
+          equivalents: string[]
+          fabricant: string | null
+          famille: string
+          id: string
+          matiere: string | null
+          produit: string
+          reference_produit: string | null
+          remarque: string | null
+          remplacement: string | null
+          source: string
+          statut: string
+        }
+        Insert: {
+          calibre?: string
+          created_at?: string
+          equivalents?: string[]
+          fabricant?: string | null
+          famille: string
+          id?: string
+          matiere?: string | null
+          produit: string
+          reference_produit?: string | null
+          remarque?: string | null
+          remplacement?: string | null
+          source: string
+          statut?: string
+        }
+        Update: {
+          calibre?: string
+          created_at?: string
+          equivalents?: string[]
+          fabricant?: string | null
+          famille?: string
+          id?: string
+          matiere?: string | null
+          produit?: string
+          reference_produit?: string | null
+          remarque?: string | null
+          remplacement?: string | null
+          source?: string
+          statut?: string
+        }
+        Relationships: []
+      }
+      formation_blocs: {
+        Row: {
+          created_at: string
+          etape: string
+          id: string
+          module: string
+          ordre: number
+          points: string[]
+          titre: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          etape: string
+          id?: string
+          module?: string
+          ordre?: number
+          points?: string[]
+          titre: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          etape?: string
+          id?: string
+          module?: string
+          ordre?: number
+          points?: string[]
+          titre?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -344,51 +527,146 @@ export type Database = {
       }
       protocoles: {
         Row: {
+          a_valider: boolean
           created_at: string
           description: string | null
           id: string
           nom: string
           region: string | null
           slug: string | null
+          source: string | null
           updated_at: string | null
         }
         Insert: {
+          a_valider?: boolean
           created_at?: string
           description?: string | null
           id?: string
           nom: string
           region?: string | null
           slug?: string | null
+          source?: string | null
           updated_at?: string | null
         }
         Update: {
+          a_valider?: boolean
           created_at?: string
           description?: string | null
           id?: string
           nom?: string
           region?: string | null
           slug?: string | null
+          source?: string | null
           updated_at?: string | null
         }
         Relationships: []
       }
-      suture_protocoles: {
+      suture_chirurgiens: {
         Row: {
+          a_valider: boolean
+          chirurgien_id: string
+          created_at: string
           note: string | null
-          protocole_id: string
-          quantite: string | null
+          source: string | null
           suture_id: string
         }
         Insert: {
+          a_valider?: boolean
+          chirurgien_id: string
+          created_at?: string
           note?: string | null
-          protocole_id: string
-          quantite?: string | null
+          source?: string | null
           suture_id: string
         }
         Update: {
+          a_valider?: boolean
+          chirurgien_id?: string
+          created_at?: string
           note?: string | null
+          source?: string | null
+          suture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suture_chirurgiens_chirurgien_id_fkey"
+            columns: ["chirurgien_id"]
+            isOneToOne: false
+            referencedRelation: "chirurgiens"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suture_chirurgiens_suture_id_fkey"
+            columns: ["suture_id"]
+            isOneToOne: false
+            referencedRelation: "sutures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suture_noms: {
+        Row: {
+          created_at: string
+          id: string
+          nom: string
+          source: string | null
+          suture_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nom: string
+          source?: string | null
+          suture_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nom?: string
+          source?: string | null
+          suture_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suture_noms_suture_id_fkey"
+            columns: ["suture_id"]
+            isOneToOne: false
+            referencedRelation: "sutures"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suture_protocoles: {
+        Row: {
+          a_valider: boolean
+          created_at: string
+          disponibilite: string | null
+          note: string | null
+          plan: string | null
+          protocole_id: string
+          quantite: string | null
+          source: string | null
+          suture_id: string
+        }
+        Insert: {
+          a_valider?: boolean
+          created_at?: string
+          disponibilite?: string | null
+          note?: string | null
+          plan?: string | null
+          protocole_id: string
+          quantite?: string | null
+          source?: string | null
+          suture_id: string
+        }
+        Update: {
+          a_valider?: boolean
+          created_at?: string
+          disponibilite?: string | null
+          note?: string | null
+          plan?: string | null
           protocole_id?: string
           quantite?: string | null
+          source?: string | null
           suture_id?: string
         }
         Relationships: [
@@ -410,6 +688,7 @@ export type Database = {
       }
       sutures: {
         Row: {
+          a_valider: boolean
           calibre: string | null
           composition: string | null
           couleur: string | null
@@ -421,6 +700,7 @@ export type Database = {
           marque: string | null
           note_qualite: string | null
           photo_url: string | null
+          plans: string[] | null
           reference: string | null
           slug: string | null
           source: string | null
@@ -430,6 +710,7 @@ export type Database = {
           usage_notes: string | null
         }
         Insert: {
+          a_valider?: boolean
           calibre?: string | null
           composition?: string | null
           couleur?: string | null
@@ -441,6 +722,7 @@ export type Database = {
           marque?: string | null
           note_qualite?: string | null
           photo_url?: string | null
+          plans?: string[] | null
           reference?: string | null
           slug?: string | null
           source?: string | null
@@ -450,6 +732,7 @@ export type Database = {
           usage_notes?: string | null
         }
         Update: {
+          a_valider?: boolean
           calibre?: string | null
           composition?: string | null
           couleur?: string | null
@@ -461,6 +744,7 @@ export type Database = {
           marque?: string | null
           note_qualite?: string | null
           photo_url?: string | null
+          plans?: string[] | null
           reference?: string | null
           slug?: string | null
           source?: string | null
