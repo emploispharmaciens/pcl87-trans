@@ -72,6 +72,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select("role")
         .eq("user_id", current.user.id);
       setRoles((roleRows ?? []).map((r) => r.role as AppRole));
+
+      const target = sessionStorage.getItem("postLoginRedirect");
+      if (target) {
+        sessionStorage.removeItem("postLoginRedirect");
+        if ((row as Profile | null)?.approval === "approuve" && target !== window.location.pathname) {
+          window.history.replaceState(null, "", target);
+          window.dispatchEvent(new PopStateEvent("popstate"));
+        }
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erreur de chargement du profil");
     } finally {
@@ -81,9 +90,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
+    let currentUserId: string | null | undefined;
 
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
+      currentUserId = data.session?.user.id ?? null;
       setSession(data.session);
       void load(data.session);
     });
@@ -91,6 +102,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       setSession(next);
+      const nextId = next?.user.id ?? null;
+      if (nextId === currentUserId) return; // simple rafraîchissement : pas d'écran de chargement
+      currentUserId = nextId;
       setLoading(true);
       void load(next);
     });
