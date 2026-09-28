@@ -1,3 +1,4 @@
+import type React from "react";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -38,7 +39,12 @@ type AuthState = {
   signOut: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthState | null>(null);
+// Contexte partagé via globalThis : survit aux rechargements à chaud du module
+// (sinon le Provider et les consommateurs peuvent référencer deux contextes différents).
+const globalKey = "__dbm_auth_context__";
+const g = globalThis as unknown as Record<string, React.Context<AuthState | null> | undefined>;
+const AuthContext: React.Context<AuthState | null> =
+  g[globalKey] ?? (g[globalKey] = createContext<AuthState | null>(null));
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
