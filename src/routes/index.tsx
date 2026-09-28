@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { MODULES } from "@/lib/modules";
@@ -87,7 +87,13 @@ function SignInButton({ label = "Se connecter avec Google" }: { label?: string }
 }
 
 function LandingPage() {
-  const { session, loading } = useAuth();
+  const { session, loading, isApproved } = useAuth();
+  const navigate = useNavigate();
+
+  // Membre connecté et validé : on l'emmène directement au portail des modules.
+  useEffect(() => {
+    if (!loading && session && isApproved) void navigate({ to: "/portail", replace: true });
+  }, [loading, session, isApproved, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
