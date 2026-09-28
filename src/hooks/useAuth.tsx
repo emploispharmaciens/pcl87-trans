@@ -1,5 +1,6 @@
 import type React from "react";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { ensureProfile } from "@/lib/profile.functions";
@@ -47,6 +48,7 @@ const AuthContext: React.Context<AuthState | null> =
   g[globalKey] ?? (g[globalKey] = createContext<AuthState | null>(null));
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -83,8 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (target) {
         sessionStorage.removeItem("postLoginRedirect");
         if ((row as Profile | null)?.approval === "approuve" && target !== window.location.pathname) {
-          window.history.replaceState(null, "", target);
-          window.dispatchEvent(new PopStateEvent("popstate"));
+          void navigate({ to: target, replace: true });
         }
       }
     } catch (e) {
