@@ -11,16 +11,19 @@ function SignIn() {
 
   const signIn = async () => {
     setBusy(true);
+    sessionStorage.setItem(
+      "postLoginRedirect",
+      window.location.pathname + window.location.search,
+    );
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
+      sessionStorage.removeItem("postLoginRedirect");
       toast.error("La connexion a échoué. Réessayez.");
       setBusy(false);
       return;
     }
-    if (result.redirected) return;
-    window.location.reload();
   };
 
   return (

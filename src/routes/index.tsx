@@ -66,16 +66,16 @@ function SignInButton({ label = "Se connecter avec Google" }: { label?: string }
 
   const signIn = async () => {
     setBusy(true);
+    sessionStorage.setItem("postLoginRedirect", "/portail");
     const result = await lovable.auth.signInWithOAuth("google", {
       redirect_uri: window.location.origin,
     });
     if (result.error) {
+      sessionStorage.removeItem("postLoginRedirect");
       toast.error("La connexion a échoué. Réessayez.");
       setBusy(false);
       return;
     }
-    if (result.redirected) return;
-    window.location.reload();
   };
 
   return (
