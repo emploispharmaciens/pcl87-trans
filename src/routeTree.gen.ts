@@ -26,6 +26,7 @@ import { Route as PharmacieSignalementsRouteImport } from './routes/pharmacie.si
 import { Route as SuturesIndexRouteImport } from './routes/sutures.index'
 import { Route as SuturesFormationRouteImport } from './routes/sutures.formation'
 import { Route as SuturesInterventionsRouteImport } from './routes/sutures.interventions'
+import { Route as SuturesPhotosRouteImport } from './routes/sutures.photos'
 import { Route as ApiPublicAgentRouteImport } from './routes/api/public/agent'
 import { Route as ApiPublicPharmaFichesCronRouteImport } from './routes/api/public/pharma-fiches-cron'
 import { Route as PharmacieFicheSlugRouteImport } from './routes/pharmacie.fiche.$slug'
@@ -116,6 +117,11 @@ const SuturesInterventionsRoute = SuturesInterventionsRouteImport.update({
   path: '/interventions',
   getParentRoute: () => SuturesRoute,
 } as any)
+const SuturesPhotosRoute = SuturesPhotosRouteImport.update({
+  id: '/photos',
+  path: '/photos',
+  getParentRoute: () => SuturesRoute,
+} as any)
 const ApiPublicAgentRoute = ApiPublicAgentRouteImport.update({
   id: '/api/public/agent',
   path: '/api/public/agent',
@@ -154,6 +160,7 @@ export interface FileRoutesByFullPath {
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/sutures/formation': typeof SuturesFormationRoute
   '/sutures/interventions': typeof SuturesInterventionsRoute
+  '/sutures/photos': typeof SuturesPhotosRoute
   '/pharmacie/': typeof PharmacieIndexRoute
   '/sutures/': typeof SuturesIndexRoute
   '/api/public/agent': typeof ApiPublicAgentRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/sutures/formation': typeof SuturesFormationRoute
   '/sutures/interventions': typeof SuturesInterventionsRoute
+  '/sutures/photos': typeof SuturesPhotosRoute
   '/pharmacie': typeof PharmacieIndexRoute
   '/sutures': typeof SuturesIndexRoute
   '/api/public/agent': typeof ApiPublicAgentRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/pharmacie/signalements': typeof PharmacieSignalementsRoute
   '/sutures/formation': typeof SuturesFormationRoute
   '/sutures/interventions': typeof SuturesInterventionsRoute
+  '/sutures/photos': typeof SuturesPhotosRoute
   '/pharmacie/': typeof PharmacieIndexRoute
   '/sutures/': typeof SuturesIndexRoute
   '/api/public/agent': typeof ApiPublicAgentRoute
@@ -224,6 +233,7 @@ export interface FileRouteTypes {
     | '/pharmacie/signalements'
     | '/sutures/formation'
     | '/sutures/interventions'
+    | '/sutures/photos'
     | '/pharmacie/'
     | '/sutures/'
     | '/api/public/agent'
@@ -245,6 +255,7 @@ export interface FileRouteTypes {
     | '/pharmacie/signalements'
     | '/sutures/formation'
     | '/sutures/interventions'
+    | '/sutures/photos'
     | '/pharmacie'
     | '/sutures'
     | '/api/public/agent'
@@ -268,6 +279,7 @@ export interface FileRouteTypes {
     | '/pharmacie/signalements'
     | '/sutures/formation'
     | '/sutures/interventions'
+    | '/sutures/photos'
     | '/pharmacie/'
     | '/sutures/'
     | '/api/public/agent'
@@ -411,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SuturesInterventionsRouteImport
       parentRoute: typeof SuturesRoute
     }
+    '/sutures/photos': {
+      id: '/sutures/photos'
+      path: '/photos'
+      fullPath: '/sutures/photos'
+      preLoaderRoute: typeof SuturesPhotosRouteImport
+      parentRoute: typeof SuturesRoute
+    }
     '/api/public/agent': {
       id: '/api/public/agent'
       path: '/api/public/agent'
@@ -467,6 +486,7 @@ const PharmacieRouteWithChildren = PharmacieRoute._addFileChildren(
 interface SuturesRouteChildren {
   SuturesFormationRoute: typeof SuturesFormationRoute
   SuturesInterventionsRoute: typeof SuturesInterventionsRoute
+  SuturesPhotosRoute: typeof SuturesPhotosRoute
   SuturesIndexRoute: typeof SuturesIndexRoute
   SuturesFilSlugRoute: typeof SuturesFilSlugRoute
 }
@@ -474,6 +494,7 @@ interface SuturesRouteChildren {
 const SuturesRouteChildren: SuturesRouteChildren = {
   SuturesFormationRoute: SuturesFormationRoute,
   SuturesInterventionsRoute: SuturesInterventionsRoute,
+  SuturesPhotosRoute: SuturesPhotosRoute,
   SuturesIndexRoute: SuturesIndexRoute,
   SuturesFilSlugRoute: SuturesFilSlugRoute,
 }
