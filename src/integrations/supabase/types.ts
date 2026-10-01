@@ -294,10 +294,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           expires_at: string | null
+          failed_attempts: number
           grant_role: Database["public"]["Enums"]["app_role"]
           id: string
           is_active: boolean
           label: string | null
+          locked_until: string | null
           max_uses: number | null
           password_hash: string
           updated_at: string
@@ -308,10 +310,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
+          failed_attempts?: number
           grant_role?: Database["public"]["Enums"]["app_role"]
           id?: string
           is_active?: boolean
           label?: string | null
+          locked_until?: string | null
           max_uses?: number | null
           password_hash: string
           updated_at?: string
@@ -322,10 +326,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           expires_at?: string | null
+          failed_attempts?: number
           grant_role?: Database["public"]["Enums"]["app_role"]
           id?: string
           is_active?: boolean
           label?: string | null
+          locked_until?: string | null
           max_uses?: number | null
           password_hash?: string
           updated_at?: string
