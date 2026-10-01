@@ -97,8 +97,10 @@ function SuturesPhotos() {
   );
 
   const total = queue.length + illustrated.length;
-  const target: SutureWithUsage | null =
-    retake ?? queue[Math.min(idx, Math.max(queue.length - 1, 0))] ?? null;
+  // Index réellement affiché : il se resynchronise quand la file se raccourcit.
+  const currentIdx = Math.min(idx, Math.max(queue.length - 1, 0));
+  const target: SutureWithUsage | null = retake ?? queue[currentIdx] ?? null;
+  const upcoming = useMemo(() => queue.slice(currentIdx + 1), [queue, currentIdx]);
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
