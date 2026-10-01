@@ -297,17 +297,17 @@ function SuturesPhotos() {
         </section>
       ) : null}
 
-      {queue.length > 1 && !retake ? (
+      {upcoming.length > 0 && !retake ? (
         <section className="mt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Ensuite · {queue.length - 1}
+            Ensuite · {upcoming.length}
           </h2>
           <ul className="mt-2 divide-y divide-border rounded-md border border-border">
-            {queue.slice(1).map((s, i) => (
+            {upcoming.map((s, i) => (
               <li key={s.id}>
                 <button
                   type="button"
-                  onClick={() => setIdx(i + 1)}
+                  onClick={() => setIdx(currentIdx + 1 + i)}
                   className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left text-sm"
                 >
                   <span className="font-medium uppercase">{s.marque}</span>

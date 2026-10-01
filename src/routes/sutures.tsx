@@ -2,6 +2,7 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AuthGate } from "@/components/AuthGate";
 import { AppHeader } from "@/components/AppHeader";
 import { ModuleBanner } from "@/components/ModuleBanner";
+import { useAuth } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/sutures")({
   component: () => (
@@ -16,13 +17,14 @@ type Tab = { to: string; label: string; icon: string; exact?: boolean };
 const TABS: Tab[] = [
   { to: "/sutures", label: "Les fils", icon: "bi-bezier2", exact: true },
   { to: "/sutures/interventions", label: "Protocoles", icon: "bi-clipboard2-pulse" },
-  { to: "/sutures/photos", label: "Photos", icon: "bi-camera" },
 ];
 
+const PHOTOS_TAB: Tab = { to: "/sutures/photos", label: "Photos", icon: "bi-camera" };
 const FORMATION_TAB: Tab = { to: "/sutures/formation", label: "Formation", icon: "bi-mortarboard" };
 
 function SuturesLayout() {
-  const tabs = [...TABS, FORMATION_TAB];
+  const { isAdmin } = useAuth();
+  const tabs = [...TABS, ...(isAdmin ? [PHOTOS_TAB] : []), FORMATION_TAB];
 
   return (
     <div className="min-h-screen pb-20 sm:pb-0">

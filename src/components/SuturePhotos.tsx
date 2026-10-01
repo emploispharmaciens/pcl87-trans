@@ -191,7 +191,6 @@ export function SuturePhotos({ suture, isAdmin }: Props) {
               ref={fileRef}
               type="file"
               accept="image/*"
-              capture="environment"
               multiple
               className="hidden"
               onChange={(e) => {
