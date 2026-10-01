@@ -281,10 +281,10 @@ function SuturesPhotos() {
                 <i className="bi bi-images" aria-hidden="true" />
                 Choisir depuis la galerie
               </button>
-              {!retake && queue.length > 1 ? (
+              {!retake && upcoming.length > 0 ? (
                 <button
                   type="button"
-                  onClick={() => setIdx((i) => Math.min(i + 1, queue.length - 1))}
+                  onClick={() => setIdx(Math.min(currentIdx + 1, queue.length - 1))}
                   className="mt-1 text-sm font-semibold text-module-strong"
                 >
                   Passer ce fil pour l'instant →
