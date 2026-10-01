@@ -208,7 +208,7 @@ function SuturesPhotos() {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {retake
               ? "Ajouter une photo"
-              : `À photographier · ${Math.min(idx + 1, queue.length)} / ${queue.length}`}
+              : `À photographier · ${currentIdx + 1} / ${queue.length}`}
           </p>
           <h2 className="mt-1 text-2xl font-semibold uppercase text-module-text">
             {target.marque}
