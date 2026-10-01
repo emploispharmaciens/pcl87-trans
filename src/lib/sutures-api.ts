@@ -154,27 +154,79 @@ function lienInfos(l: LinkRow): LienInfos {
   };
 }
 
-async function fetchRaw() {
+const PAGE_SIZE = 1000;
+
+type PageResult = { data: unknown[] | null; error: { message: string } | null };
+
+/** Lit une table entière par tranches de 1000 lignes, et remonte toute erreur. */
+async function fetchAllRows<T>(
+  label: string,
+  page: (from: number, to: number) => PromiseLike<PageResult>,
+): Promise<T[]> {
+  const rows: unknown[] = [];
+  for (let from = 0; ; from += PAGE_SIZE) {
+    const { data, error } = await page(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`Lecture de « ${label} » impossible : ${error.message}`);
+    const batch = data ?? [];
+    rows.push(...batch);
+    if (batch.length < PAGE_SIZE) break;
+  }
+  return rows as T[];
+}
+
+type RawData = {
+  sutures: Suture[];
+  protocoles: Protocole[];
+  links: LinkRow[];
+  chirurgiens: Chirurgien[];
+  chirLinks: ChirLinkRow[];
+  noms: NomRow[];
+};
+
+async function loadRaw(): Promise<RawData> {
   const [sutures, protocoles, links, chirurgiens, chirLinks, noms] = await Promise.all([
-    supabase.from("sutures").select("*").order("marque", { ascending: true }),
-    supabase.from("protocoles").select("*").order("nom", { ascending: true }),
-    supabase.from("suture_protocoles").select("*"),
-    supabase.from("chirurgiens").select("id, nom, initiales, specialite, a_valider").order("nom"),
-    supabase.from("suture_chirurgiens").select("suture_id, chirurgien_id, note, a_valider"),
-    supabase.from("suture_noms").select("id, suture_id, nom, source").order("nom"),
+    fetchAllRows<Suture>("fils de suture", (from, to) =>
+      supabase.from("sutures").select("*").order("marque", { ascending: true }).range(from, to),
+    ),
+    fetchAllRows<Protocole>("protocoles", (from, to) =>
+      supabase.from("protocoles").select("*").order("nom", { ascending: true }).range(from, to),
+    ),
+    fetchAllRows<LinkRow>("liens fil / protocole", (from, to) =>
+      supabase.from("suture_protocoles").select("*").range(from, to),
+    ),
+    fetchAllRows<Chirurgien>("chirurgiens", (from, to) =>
+      supabase
+        .from("chirurgiens")
+        .select("id, nom, initiales, specialite, a_valider")
+        .order("nom")
+        .range(from, to),
+    ),
+    fetchAllRows<ChirLinkRow>("liens fil / chirurgien", (from, to) =>
+      supabase
+        .from("suture_chirurgiens")
+        .select("suture_id, chirurgien_id, note, a_valider")
+        .range(from, to),
+    ),
+    fetchAllRows<NomRow>("noms de terrain", (from, to) =>
+      supabase.from("suture_noms").select("id, suture_id, nom, source").order("nom").range(from, to),
+    ),
   ]);
-  if (sutures.error) throw sutures.error;
-  if (protocoles.error) throw protocoles.error;
-  if (links.error) throw links.error;
-  // Tables de la phase 4a : absentes tant que la migration n'est pas passée.
-  return {
-    sutures: (sutures.data ?? []) as Suture[],
-    protocoles: (protocoles.data ?? []) as Protocole[],
-    links: (links.data ?? []) as unknown as LinkRow[],
-    chirurgiens: (chirurgiens.error ? [] : (chirurgiens.data ?? [])) as Chirurgien[],
-    chirLinks: (chirLinks.error ? [] : (chirLinks.data ?? [])) as ChirLinkRow[],
-    noms: (noms.error ? [] : (noms.data ?? [])) as NomRow[],
-  };
+  return { sutures, protocoles, links, chirurgiens, chirLinks, noms };
+}
+
+let rawCache: { at: number; promise: Promise<RawData> } | null = null;
+const RAW_TTL_MS = 5000;
+
+/** Une seule lecture partagée entre fetchSutures et fetchProtocoles. */
+function fetchRaw(): Promise<RawData> {
+  const now = Date.now();
+  if (rawCache && now - rawCache.at < RAW_TTL_MS) return rawCache.promise;
+  const promise = loadRaw().catch((error: unknown) => {
+    rawCache = null;
+    throw error;
+  });
+  rawCache = { at: now, promise };
+  return promise;
 }
 
 /** Liste des fils avec leurs protocoles, noms de terrain et chirurgiens. */
