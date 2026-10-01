@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
+import { AuthGate } from "@/components/AuthGate";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { useSutureImageUrls } from "@/hooks/useSutureImageUrls";
 import { resizeImageToBase64 } from "@/lib/image-resize";
@@ -23,7 +24,11 @@ export const Route = createFileRoute("/sutures/photos")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: SuturesPhotos,
+  component: () => (
+    <AuthGate requireAdmin>
+      <SuturesPhotos />
+    </AuthGate>
+  ),
 });
 
 type Shot = { base64: string; contentType: string; fileName: string; preview: string };
@@ -97,8 +102,10 @@ function SuturesPhotos() {
   );
 
   const total = queue.length + illustrated.length;
-  const target: SutureWithUsage | null =
-    retake ?? queue[Math.min(idx, Math.max(queue.length - 1, 0))] ?? null;
+  // Index réellement affiché : il se resynchronise quand la file se raccourcit.
+  const currentIdx = Math.min(idx, Math.max(queue.length - 1, 0));
+  const target: SutureWithUsage | null = retake ?? queue[currentIdx] ?? null;
+  const upcoming = useMemo(() => queue.slice(currentIdx + 1), [queue, currentIdx]);
 
   const onFile = async (file: File | undefined) => {
     if (!file) return;
@@ -206,7 +213,7 @@ function SuturesPhotos() {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {retake
               ? "Ajouter une photo"
-              : `À photographier · ${Math.min(idx + 1, queue.length)} / ${queue.length}`}
+              : `À photographier · ${currentIdx + 1} / ${queue.length}`}
           </p>
           <h2 className="mt-1 text-2xl font-semibold uppercase text-module-text">
             {target.marque}
@@ -274,10 +281,10 @@ function SuturesPhotos() {
                 <i className="bi bi-images" aria-hidden="true" />
                 Choisir depuis la galerie
               </button>
-              {!retake && queue.length > 1 ? (
+              {!retake && upcoming.length > 0 ? (
                 <button
                   type="button"
-                  onClick={() => setIdx((i) => Math.min(i + 1, queue.length - 1))}
+                  onClick={() => setIdx(Math.min(currentIdx + 1, queue.length - 1))}
                   className="mt-1 text-sm font-semibold text-module-strong"
                 >
                   Passer ce fil pour l'instant →
@@ -297,17 +304,17 @@ function SuturesPhotos() {
         </section>
       ) : null}
 
-      {queue.length > 1 && !retake ? (
+      {upcoming.length > 0 && !retake ? (
         <section className="mt-8">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Ensuite · {queue.length - 1}
+            Ensuite · {upcoming.length}
           </h2>
           <ul className="mt-2 divide-y divide-border rounded-md border border-border">
-            {queue.slice(1).map((s, i) => (
+            {upcoming.map((s, i) => (
               <li key={s.id}>
                 <button
                   type="button"
-                  onClick={() => setIdx(i + 1)}
+                  onClick={() => setIdx(currentIdx + 1 + i)}
                   className="flex w-full items-center justify-between gap-2 px-3 py-3 text-left text-sm"
                 >
                   <span className="font-medium uppercase">{s.marque}</span>
