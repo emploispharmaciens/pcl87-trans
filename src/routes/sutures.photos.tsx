@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useRef, useState } from "react";
+import { AuthGate } from "@/components/AuthGate";
 import { CardSkeleton, EmptyState, ErrorState } from "@/components/DataStates";
 import { useSutureImageUrls } from "@/hooks/useSutureImageUrls";
 import { resizeImageToBase64 } from "@/lib/image-resize";
@@ -23,7 +24,11 @@ export const Route = createFileRoute("/sutures/photos")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: SuturesPhotos,
+  component: () => (
+    <AuthGate requireAdmin>
+      <SuturesPhotos />
+    </AuthGate>
+  ),
 });
 
 type Shot = { base64: string; contentType: string; fileName: string; preview: string };
