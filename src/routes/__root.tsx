@@ -79,21 +79,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Transmissions — DB&M" },
+      { title: "Des Blocs & Moi" },
       {
         name: "description",
         content:
-          "DB&M Transmissions : le journal de relève des équipes de bloc opératoire en chirurgie orthopédique.",
+          "Des Blocs & Moi : les outils numériques des équipes de bloc opératoire en chirurgie orthopédique.",
       },
-      { name: "author", content: "DB&M" },
-      { property: "og:title", content: "Transmissions — DB&M" },
+      { name: "author", content: "Des Blocs & Moi" },
+      { property: "og:title", content: "Des Blocs & Moi" },
       {
         property: "og:description",
-        content: "Le journal de relève numérique des équipes de bloc opératoire.",
+        content: "Les outils numériques des équipes de bloc opératoire.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
@@ -115,7 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="fr">
       <head>
         <HeadContent />
       </head>
