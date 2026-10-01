@@ -15,7 +15,7 @@ export type FicheRow = {
   updated_at: string;
 };
 
-/** Lit la fiche d'un produit, et la génère au premier accès si elle n'existe pas encore. */
+/** Lit la fiche d'un produit. La génération au premier accès est réservée aux admins. */
 export const getFiche = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => slugInput.parse(data))
@@ -32,6 +32,9 @@ export const getFiche = createServerFn({ method: "POST" })
       .eq("product_slug", data.slug)
       .maybeSingle();
     if (existing) return existing as FicheRow;
+
+    if (!(await isAdmin(context.supabase, context.userId)))
+      throw new Error("Fiche non encore disponible.");
 
     const { generateFicheContent, FICHE_MODEL } = await import("@/lib/pharma-fiche.server");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
